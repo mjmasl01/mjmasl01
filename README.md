@@ -1,8 +1,9 @@
 ### Hi there 👋
 
 I am a current senior at St. Lawrence University, in Canton, NY, and pursuing a degree in Data Science.
-📫 How to reach me.... cell: 617-433-0501
-                       email: mjmasl20@stlawu.edu, mjmaslow13@gmail.com
+
+How to reach me.... cell: 617-433-0501
+                    email: mjmasl20@stlawu.edu, mjmaslow13@gmail.com
 <!--
 **mjmasl01/mjmasl01** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
