@@ -1,5 +1,7 @@
 ### Hi there 👋
 
+I am a current senior at St. Lawrence University, in Canton, NY, and am studying Data Science,
+
 <!--
 **mjmasl01/mjmasl01** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
