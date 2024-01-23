@@ -1,0 +1,35 @@
+---
+title: "Class Prep 2"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+### 1 
+**Using either Anscombe’s quartet or the income/voter turnout graph as an example, explain why it’s valuable to look at data graphically instead of examining data only with summary statistics.**
+It is valuable to examine the data graphically because it allows us to see the data in a different way. For example, in the initial study it showed a substantial link between voter turnout and income inequality through a quantitative examination of the countries. However, the graphical representation effectively presents the SPECIFIC use of South Africa having strong association.
+
+### 2 
+**Take a look at the bar plot in Figure 1.4. Give a couple of reasons for why the chart has “bad taste.”**
+This vizual is 'bad taste' because it very confusing to depict differences/variation between countries. Only show the quantity, but fails to show varaition, mean and shape
+
+
+### 3 
+**Why might you not always want to maximize the data-to-ink ratio when making charts?**
+These approach is not always what you want to do, as it could leave to some viewers struggling to userstand the visualization of data if we had "simplified and simplified" too much. Furthermore, They are also associated directly eith value judgements instead of representing data as a whole. Overall is it important to have a good balance of informations compared to ascetically pleasing vizual to pair with data, other wise it could lead to confusion and misinterpretation of data. Make one question if simplifying to simplest form is not always the best.
+
+### 4 
+**What do the authors mean when they say that “relative comparisons need a stable baseline” and how does that affect your ability to interpret the coloured stacked bar plot in Figure 1.11?**
+The author says this because if you were to compare the purple to the green it would be difficult since the purple starts all at the base, as compared to the green or any type since they all start at different points making it difficult to compare since it does not have stable baseline/starting point.
+
+### 5 
+**What are two key takeaways from Sections 1.1 and 1.2?**
+One, do not over simplify data to the point where it is not understandable. 
+Two, do not over complicate data visualization to the point where it is not understandable. It is important to find a balance between the info/graphic to make sure that the data is understandable and not misleading.
+
+### 6 
+**What is one question that you have about the reading?**
+For the ink-to-ratio scale, is there a way to find the perfect balance between the two? Or is it rule of thumb?
+
+

@@ -1,0 +1,58 @@
+---
+title: "Class Prep 4"
+author: "Matt Maslow"
+format: html
+---
+
+# 1
+*What is the difference between a colour’s hue and a colour’s intensity?*
+A color's hue represents the name in a way or the physical meaning is seen a the dominant wavelength of light reflected.
+
+A color's intensity is chrominance or chroma, which describes the vividness and in a way the translucency, in other words describes the scale of color, where depicts if the color is light versus darker tones. 
+
+
+# 2
+*Think of an example where you would want to use a sequential colour scale that’s different from the one given in the text. Then, think of examples where you would use a diverging colour scale and an unordered colour scale.*
+
+yellow to purple = [Yellow, Orange-Yellow, Orange, Orange-Red, Red, Purple, Violet]
+
+
+# 3 
+*Some gestalt inferences take priority over others. Using Figure 1.21, give an example of a gestalt inference that takes priority over another one.*
+For example, looking at the bottom plots in this figure, the left plot depicts bunch of observations, similar to geom_point, however the priority in this is that the obersvations are split into two groups, circles or stars, and either group has individual trends depicted too. 
+
+
+# 4
+*“Bar charts are better than Pie charts for visualizing a single categorical variable.” Explain how results shown in Figure 1.23 support this claim.*
+
+Looking at the bottom visual you can compare the log error for both the bar and pie charts, and you can notice that the bar charts have an error of 1.5 or smaller, while the pie charts log error is over 2.5. Therefore the bar charts are better since they possess the smaller log error.
+
+
+# 5 
+*Suppose you have a scatter plot of height on the y-axis vs. weight on the x-axis for people born in Canada, Mexico, and the United States. You now want to explore whether the relationship is different for people born in the United States, people born in Canada, and people born in Mexico. Should you use different shapes to distinguish the three countries or should you use different colours? Explain using either Figure 1.24 or 1.25.*
+
+We should pick shapes to distinguish the three countries because if we pick a hue or get a hue that has similar colors it can be misleading when interpreting the data. Therefore, it is better to use shapes, since they allow for more distinct options.
+
+
+# 6
+*When might you use the left-side of Figure 1.27 to show the law school data? When might you use the right-side of Figure 1.27 to show the law school data?*
+
+We would prefer the left figure over the right since we are able to vizualize the trends much better in the data. The difference is that we limited the y-axis, so instead of it starting at 0, it starts at 20,000, in order to enlargen the trend/data.
+
+
+# 7
+*Summary: What are two takeaways from Sections 1.3-1.7?*
+
+**First**, when identifying groups in plots it better to use shapes than hues to avoid any potential confusion
+**Second**, in graphic visualizations there seems to be a hierarchy in a way when it comes to representing the data, this was exhibited with the term "priority", where data might be all on the same dot but they can be split/identified into groups which would take priority in graphs visualization 
+
+
+# 8
+*What is one question that you have about the reading?*
+
+I know it would technically easier to use shapes for priority in graphs, but isn't it still possible to manually pick the colors you want for groups to avoid possibility for confusion?
+
+
+
+
+

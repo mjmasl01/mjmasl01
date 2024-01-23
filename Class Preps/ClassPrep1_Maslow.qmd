@@ -1,0 +1,57 @@
+---
+title: "Class Prep 1"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+### What is your name and what is your class year (first-year, sophomore, junior, senior)?
+
+**My name is Matt Maslow, and I am Senior**
+
+### What is/are your major(s) and minor(s), either actual or intended?
+
+**I am majoring in Data Science**
+
+### Why did you decide to take this course?
+
+**I decided to take this course purely for my own interest and I want to expand my knowledge in R, as well as my data vizualation for analysis**
+
+### In what semester and year did you take STAT/DATA 234? STAT 213?
+
+**Took Data234 in Spring 2023 and Stat213 in Fall of 2022**
+
+### Have you taken CS 140?
+
+**Yes i have taken it, have CS knowledge up to Database systems**
+
+### Have you used Git before? If so, in what context?
+
+**Yes, I have used it in CS345 where we created our own respositories to post/store our work. I have also used it in Stat313 where we connected our Rprojects to Ramlers git repo to keep our projects up to date. Also have used Git for some code completions/AI recommendations as well**
+
+### Before this course, did you use R Studio on your desktop?
+
+**Yes, I have been using it on my desktop since I took stat234 with Ramler**
+
+### What is your hometown: city, state, country?
+
+**Needham, MA, USA**
+
+### Do you play a sport on campus? If so, what sport? If not, what is an activity that you do on or off-campus?
+
+**I play some club soccer here and there, but I do a bit of biking and snowboarding**
+
+### What is your favorite TV show or movie or band/musical artist?
+
+**My all time favorite show would have to be Barry on MAX**
+
+### Tell me something about yourself.
+
+**I really enjoy the outdoors and nature**
+
+### What are your expectations for this class and/or what do you hope to gain from this class?
+
+**My excpectatiojns for this class is that I will maintain and strengthen my R-skills, what to learn knew ways to vizualize data**
+
