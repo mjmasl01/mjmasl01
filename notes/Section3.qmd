@@ -1,0 +1,146 @@
+
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+theme_set(theme_minimal())
+
+penguins_sum <- penguins |> group_by(species, year) |>
+  summarise(n_penguins = n()) |>
+  mutate(year = factor(year))
+
+ggplot(data = penguins_sum, aes(x = year, fill = species)) +
+  geom_col(aes(y = n_penguins),position = "dodge") + # added dodge as it would be more effect for the baseline fo the vizual
+  theme_minimal() +
+  scale_fill_viridis_d()
+```
+
+```{r}
+
+ggplot(data = penguins_sum, aes(x = year, y = n_penguins,
+                                colour = species, group = species)) +
+  geom_line() +
+  theme_minimal() +
+  scale_colour_viridis_d()
+```
+
+The first plot would be the best option for this prompt
+
+
+
+```{r}
+
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+hpi_df <- read_csv(here("data/hpi-tidy.csv"))
+hpi_extreme <- hpi_df |>
+  arrange(desc(HappyPlanetIndex)) |>
+  slice(1:10, (nrow(hpi_df) - 9):nrow(hpi_df)) |>
+  mutate(Country = fct_reorder(Country, HappyPlanetIndex))
+
+ggplot(data = hpi_extreme, aes(x = Country, y = HappyPlanetIndex,
+                               fill = Region)) +
+  geom_col() +
+  scale_fill_viridis_d() +
+  coord_flip() +
+  theme_minimal()
+
+
+ggplot(data = hpi_extreme, aes(x = Country, y = HappyPlanetIndex,
+                               colour = Region)) +
+  geom_point() +
+  geom_segment(aes(xend = Country, y = 0, yend = HappyPlanetIndex)) +
+  scale_colour_viridis_d() +
+  coord_flip() +
+  theme_minimal()
+
+# both plots are good, first easier to identify the regions, but the second one has better ink to data ratio
+```
+
+```{r}
+ggplot(data = penguins, aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(colour = species)) +
+  scale_colour_viridis_d() +
+  theme_minimal()
+```
+
+```{r}
+penguins
+```
+
+
+```{r}
+penguins <- penguins |> mutate(species_island_sex = interaction(species, 
+                                                                island,
+                                                                sex))
+ggplot(data = penguins |>
+         filter(!is.na(sex)), aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(color = sex)) +
+  facet_grid( vars(species), vars(island)) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data = penguins, aes(x = island)) +
+  geom_bar(fill = "darkslategray4") +
+  theme_minimal()
+
+# this effectively yses position of the bar
+```
+
+```{r}
+
+ggplot(data = penguins, aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(colour = species)) +
+  theme_minimal() +
+  scale_colour_brewer(type = "qual")
+```
+
+# Exercise 1
+
+a.
+Sequential (number of cases is clearly order: more cases would be a more "pop" color)
+
+b.
+Diverging (zero change would be given a neutral number)
+
+c.
+qualatative 
+
+d.
+diverging 
+
+
+
+# Exercise 2
+
+```{r}
+ggplot(date = penguins, aes(x = bill_length_mm,
+                            y = bill_depth_mm))+
+geom_point(aes(color=species)) +
+  scale_color_viridis_b()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
