@@ -1,0 +1,76 @@
+---
+title: "Take Home 1"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+# Question 1
+
+Based on the graph, Group 5, yellow, is the easiest to see the overall trend through time, as its baseline is at zero, therefore all counts for group 5 start at same position making the spread/variance more visible. Likewise other groups are stacked ontop, making it harder to see the trend.
+
+
+# Question 2
+
+## a.
+
+A diverging color scale should be used for depicting the percent change in covid cases throughout the states, representing negative and postive changes. This is because in a diverging scale holds two spectrums, one for each color, and in the context of the problem can one color represents positive, then other is negative. Then as the percents range closer towards 50% the where the colors vary, easily depicting the different changes in the covid cases across the US.
+
+
+## b.
+
+To represent the count of covid cases per 100,000 people is best represented with a sequential color scale where there is one color, when the color is show with the most vivid/intense or brightest, would have high count of cases, as where the color gets less vivid is where the cases are smaller, and then white would be minimal number of cases.
+
+
+# Question 3
+
+## a.
+
+I would say a histogram is the most appropriate plot to visualize and understand the distribution of all of the scores in the class.
+
+## b.
+
+I chose histogram because it specializes in single quantity graphing, and helps to better see patterns, variations, and potential outliers. Graphic would present center, spread, shape, as well as an approximate numebr of observations depending on the theme of visual.
+
+
+# Question 4
+
+## a.
+
+A statistical transformation can be seen here, where the initial dot plot/scatter plot can be seen in the first image, then in the second they implement box plots which show  minimum, first quartile, median, third quartile, and maximum, as well as outliers. Also, could just be adding geom_boxplot.
+
+
+## b.
+
+This is a coordinate_function(), where it uses coord_flip() on the axis, so now y is on x-axis and vice versa.
+
+
+## c.
+
+This is a geom_function, where they use geom_jitter(), in order to spread the points about the initial trend of the data, giving the data more spread/variation, if the original graphic's values are hard to see and determine a trend.
+
+
+# Question 5
+
+## a.
+
+The second plot would be the better and more effective options. This is because, we already know that the count would start at zero, so by limiting the x-axis to nly show the count range of 40-85, it allows us to vizualize the variation of each of the baseball positions, and how their counts compare.
+
+
+## b.
+
+The first plot is the better option for this prompt and visual, as with the line plot, 2nd plot, it is hard to at particular positions trend and distribution as all of the groupings are ontop of each other. Likewise, with the first plot, which shows faceted histograms where you can vizual each positions trend and distribution, as well as some summary stats easily compared to the second plot.
+
+
+
+
+
+
+
+
+
+
+
+
