@@ -1,0 +1,108 @@
+---
+title: "Coding Quiz 2"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+
+# Question 1
+
+```{r}
+library(maps)
+library(tidyverse)
+library(here)
+election_df <- read_csv(here("2020_county_pres.csv")) |>
+  group_by(state_name) |>
+  summarise(total_gop = sum(votes_gop),
+            total_dem = sum(votes_dem)) |>
+  mutate(percent_gop = 100 * total_gop / (total_gop + total_dem)) |>
+  mutate(state_name = str_to_lower(state_name))
+```
+*construct a map that fills each U.S. State with the percent of voters who voted for the republican candidate, Trump (percent_gop)*
+
+```{r}
+election_df |>
+  ggplot(aes(map_id = state_name, fill = percent_gop)) +
+  geom_map(map = map_data("state"), color = "black") +
+  expand_limits(x = map_data("state")$long, y = map_data("state")$lat) +
+  coord_map(projection = "gilbert") + # projection
+  # sequential color scale
+  scale_fill_distiller(type = "seq", direction = 1) +
+  theme_void()
+```
+
+
+# Question 2
+
+## a.
+*(15 points). For the first plot, you should use the Facebook variable directly by making boxplots through time for each academic year. The Facebook variable corresponds to the number of friends a student reported to have on Facebook. Again, values from F12 and before can be excluded while values after F12 that are NA should be changed to 0’s before you construct your plot.*
+
+```{r}
+library(here)
+statsurvey_df <- read_csv(here("data/stat113_survey.csv"))
+```
+```{r}
+statsurvey_df |>
+  filter(time_both != "F12") |> # getting rid of F12 values
+  filter(Facebook > 0) |> # getting rid of NA values and zeros
+  mutate(Facebook = ifelse(is.na(Facebook), 0, Facebook)) |> # change NA's after F12 to 0
+  ggplot(aes(x = time_both, y = Facebook)) + 
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Facebook Friends by Academic Year", x = "Academic Year", y = "Number of Facebook Friends")
+```
+
+
+## b.
+*(20 points). Construct a graph that uses the proportion of students that have a Facebook for each academic year, along with a metric of variability for each proportion. For this question, assume that 0 Facebook friends means that the student does not have a Facebook account and more than 0 Facebook friends means that the student does have a Facebook account).*
+
+
+```{r}
+statsurvey_df |> group_by(time_both) |>
+  filter(time_both != "F12") |> # getting rid of F12 values
+  mutate(Facebook = ifelse(is.na(Facebook), 0, Facebook)) |> # change NA's after F12 to 0
+  summarise(n_total = n(),
+            n_Facebook = sum(Facebook >= 1),
+    prop_facebook = n_Facebook / n_total ,
+    se = sqrt( (prop_facebook * (1 - prop_facebook)) / n_total ) ) |>
+  mutate(time_both = fct_reorder(time_both, prop_facebook)) |>
+  filter(prop_facebook != 0) |>
+  ggplot(aes(x = time_both, y = prop_facebook)) +
+  geom_point(color = "blue") +
+  geom_errorbar(aes(ymin = prop_facebook - se, ymax = prop_facebook + se), width = 0.2) +
+  theme_minimal() +
+  coord_flip() 
+```
+
+
+## c.
+*(5 points). The following side-by-side violin plot explores the distribution of GPA for students that do and do not have a Tattoo (after removing a couple of outliers for GPA that are above 4.0 and therefore are impossible to have). We see from the plot that the distributions in GPA for the two groups are quite similar, which is probably what we would expect. For the plot, complete the following:*
+
+```{r}
+statsurvey_partc <- statsurvey_df |> filter(GPA <= 4.0 & !is.na(Tattoo))
+ggplot(data = statsurvey_partc, aes(x = Tattoo, y = GPA)) +
+  geom_violin(col = "blue", fill = "green") +
+  theme_minimal() +
+  labs(title = "GPA by Tattoo Status", subtitle = "Distribution of GPA's for students with and without tattoos", x = "Tattoo Status", y = "Grade Point Average (GPA)") +
+  scale_y_continuous(limits = c(0.0, 4.0))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

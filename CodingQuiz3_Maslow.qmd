@@ -1,0 +1,84 @@
+---
+title: "Coding Quiz 3"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+# Question 1 (30 points). 
+*In the handwritten portion of the quiz, you were asked to make a sketch of a visualization you would make to interpret a model with lego price as the response and pieces (quantitative), theme (categorical with 3 levels: "City", "DUPLO®", "Friends"), age_5 (categorical with 2 levels: "no", "yes"), and the interaction between pieces and theme as predictors. Using the lego_df data set, construct the plot given below.*
+
+## Note: 
+*There is more than one correct “sketch” you could have given on the handwritten quiz. So, if your sketch doesn’t match the one below, that is not necessarily a reason to panic!*
+
+## Note 2: 
+*The visualization (moreso than the model output) makes more clear when extrapolation would be an issue with the model. That is, we really do not have any data for DUPLO series that are not appropriate for a 5-year old nor do we have information on any of the three themes for lego sets with a large number of pieces that are appropriate for a 5-year old child.*
+
+```{r}
+library(tidyverse)
+library(broom)
+lego_df <- read_csv(here::here("data/lego_sample.csv")) |> 
+  mutate(age_5 = if_else(ages %in% c("Ages_6-12", "Ages_6+",
+                                     "Ages_7+", "Ages_8+"),
+                                  true = "no", false = "yes"))
+```
+```{r}
+lego_df %>%
+  mutate(age_5 = factor(age_5),
+         theme = factor(theme)) %>%
+  ggplot(aes(x = pieces, y = price, color = theme)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ylim(0, 300) +
+  facet_wrap(~age_5) +
+  scale_color_viridis_d() +
+  theme_minimal()
+```
+
+
+
+# Question 2 
+*(2 points). For the model fit above (with pieces (quantitative), theme (categorical with 3 levels: "City", "DUPLO®", "Friends"), age_5 (categorical with 2 levels: "no", "yes"), and the interaction between pieces and theme as predictors), use tidy() to create a summary table of output of the model.*
+
+```{r}
+lego_df %>%
+  mutate(age_5 = factor(age_5),
+         theme = factor(theme)) %>%
+  lm(price ~ age_5 + pieces + theme + pieces:theme, .) %>%
+  tidy()
+```
+
+# Question 3 
+*(2 points). For the model fit above, use glance() to obtain some basic model statistics.*
+
+```{r}
+legoMOD <- 
+  lego_df %>%
+  mutate(age_5 = factor(age_5),
+         theme = factor(theme)) %>%
+  lm(price ~ age_5 + pieces + theme + pieces:theme, .)
+glance(legoMOD)
+```
+
+# Question 4
+*(6 points). For the model fit above, use augment() to create a data frame with fitted values, residuals, leverage, cook’s distance, etc. Then, use this data frame to construct a residual plot (a plot of the model residuals vs. the fitted values).*
+
+```{r}
+library(modelr)
+grid <-lego_df %>% data_grid(
+  age_5 = c("no", "yes"),
+  pieces = seq_range(lego_df$pieces, n = 5),
+  theme = c("DUPLO®", "Friends", "City"),
+  pieces_theme = c("pieces:DUPLO®", "piecesFriends", "pieces:City")
+)
+aug_lego <- augment(legoMOD, newdata = grid, se_fit = TRUE, interval = "prediction")
+aug_lego %>%
+  ggplot(aes(x = .se.fit, y = .fitted)) +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal()
+
+```
+
+

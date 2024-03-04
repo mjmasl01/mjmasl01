@@ -1,0 +1,143 @@
+---
+title: "Class Prep 6"
+author: "Matthew Maslow"
+format: html
+---
+
+```{r}
+## install.packages("maps")
+library(maps)
+library(tidyverse)
+state_df <- ggplot2::map_data("state")
+```
+
+```{r}
+# install.packages("usdata")
+library(usdata)
+reactable::reactable(state_stats, searchable = TRUE, filterable = TRUE
+                      ,paginateSubRows = TRUE, defaultPageSize = 10)
+```
+
+
+```{r}
+ggplot(data = state_df,
+            mapping = aes(x = long, y = lat,
+                          group = group)) +
+  geom_polygon() 
+ggplot(data = state_df,
+            mapping = aes(x = long, y = lat,
+                          group = group)) +
+  geom_polygon(colour = "black", fill = "white") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+state_stats <- state_stats |> mutate(state = str_to_lower(state))
+state_full <- left_join(state_df, state_stats, by = c("region" = "state"))
+
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_b()
+```
+
+
+
+```{css, echo = FALSE}
+.justify {
+  text-align: justify !important
+}
+```
+
+# Exercise 1. 
+*The reading gave one example where the “best” graph to show woud not be a map. Think of a second example where, even though the data is spatial, the best graph to make a particular argument would not be a map.*
+
+::: {.justify}
+
+The example the reading gives is about the smaller east coast states where it is significantly more difficult to visualize their coal levels as their shape on the graph is very minuscule, making it difficult to see and compare their values to rest of the states. Another graphic example that could better depict all of the state's coal levels could be a histogram, where there is a bar/hist for each state that shows their level, next to one another for a better graphic comparison.
+
+:::
+
+
+# Exercise 2. 
+*Refer back the United States examples that we completed. Choose a variable or two variables where a map makes the most sense to visualize that variable and explain your reasoning. Then, choose a variable or two variables where you might make a plot other than a map and explain your reasoning for why the map makes less sense for this variable.*
+
+::: {.justify}
+
+*Population Density:*   Variable where a map makes sense, since the color variation will allow for a clear visual of the population density across the states.
+
+
+*Median Income:* Variables where a map may not be the best choice to visualize the data, as the income levels are not spatially distributed across the states as this data is only on median values and will be difficult to compare the values across states with colors
+
+:::
+
+# Exercise 3. 
+*Which states had the fastest growth rate between 2000 and 2010? Make a variable for the percent change in population and then map this variable.*
+
+```{r}
+state_stats_growth <- state_full %>%
+  mutate(pop_growth_rate = ((pop2010 - pop2000) / pop2000) * 100)
+
+ggplot(data = state_stats_growth, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = pop_growth_rate)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_c()
+```
+
+
+::: {.justify}
+
+Nevada, Arizona, and Utah had the fastest growth rates between 2000 and 2010. These states are colored with yellow and lighetest shade of greenww on the map, indicating the highest growth rates. The map effectively shows the spatial distribution of growth rates across the United States, with the fastest growth rates in the Southwest and Mountain West regions.
+
+:::
+
+
+# Exercise 4. 
+*To your map in Exercise 1, think about which type of colour scale makes the most sense to use (sequential, diverging, or unordered). Change the colour scale to match what makes the most sense.*
+ 
+::: {.justify}
+ 
+ I would pick a sequential color scale for this graphic as the coal variable depicts a count in each region/state, therefore, having the sequential color scale will have white as the lowest value and dark red as the highest value, making it easier to see the differences in the coal levels across the states.
+ 
+:::
+
+```{r}
+# sequential
+red_palette <- colorRampPalette(c("white", "darkred"))
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  scale_fill_gradientn(colours = red_palette(10), name = "Coal Value") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+
+# diverging
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_c()
+diverging_palette <- colorRampPalette(c("red", "white", "orange"))
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  scale_fill_gradientn(colours = diverging_palette(10), name = "Coal Value") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+
+# unordered
+unique_coal_values <- unique(state_full$coal)
+unordered_palette <- scales::hue_pal()(length(unique_coal_values))
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = factor(coal))) +
+  scale_fill_manual(values = unordered_palette, name = "Coal Value") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+
+```
+
+
+
+
+
+
+
+

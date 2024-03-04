@@ -1,0 +1,118 @@
+---
+title: "Class Prep 5"
+author: "Matt Maslow"
+format: html
+---
+
+# Exercise 1: 
+*For each of the core dplyr functions mutate(), arrange(), select(), slice(), filter(), group_by(), and summarise(), write a one sentence summary of the overall purpose of the function.*
+
+**mutate()**- Allows users to manipulate/change/add variables in the data set.
+
+**arrange()**-This will order the imputed argument, or given variable, alpha-numerically, and rest of cols/vars sort themselves accordingly.
+
+**select()**-Allows users to pick which variables they want to view in their final output.
+
+**slice()**-Allows users to split the data at "n" number of rows, creating a separate data set from original.
+
+**filter()**-This allows users to specify what they see in their final output, such as only looking at specific category/level for a particular variable.
+
+**group_by()**-Allows users to categorize the data into groups.
+
+**summarise()**-Produces tibble of imputed information that can be either displayed or stored, and common used to show descriptive statistics of particular variable(s) or data.
+
+
+# Exercise 2: 
+*Review mutate(). Create a new variable in hpi_df that is equal to Wellbeing / Footprint.*
+```{r}
+library(tidyverse)
+hpi_df <- read_csv("data/hpi-tidy.csv")
+```
+```{r}
+hpi_df %>%
+  mutate(WellB_FootP = Wellbeing/Footprint) %>%
+  relocate(WellB_FootP, Wellbeing, Footprint)
+```
+
+
+# Exercise 3: 
+*Review mutate() and case_when(). Create a new variable in hpi_df that is equal to "80s" if LifeExp is in the 80’s, "70s" if LifeExp is in the 70s, and "Below 70" if LifeExp is less than 70.*
+```{r}
+hpi_df %>%
+  mutate(AgeRange = case_when(
+    LifeExpectancy >= 80 ~ "80s",
+    LifeExpectancy >= 70 ~ "70s",
+    LifeExpectancy < 70 ~ "Below 70")) %>%
+  relocate(AgeRange, LifeExpectancy)
+```
+
+
+# Exercise 4. 
+*Review arrange(). Sort the hpi_df data so that the country with the highest LifeExp is in the first row and the country with the lowest LifeExp is in the last row.*
+```{r}
+hpi_df %>% arrange(-LifeExpectancy)
+```
+
+
+# Exercise 5. 
+*Review select(). Make a data frame from hpi_df that only has the variables Country and LifeExp.*
+```{r}
+(Country_LifeExp_df <- hpi_df %>%  select(Country, LifeExpectancy)) 
+```
+
+
+# Exercise 6. 
+*Review slice(). Make a data frame from hpi_df that only has the first 5 rows.*
+```{r}
+(First5_hpi <- hpi_df %>% slice(1:5))  %>%pander::pander()
+```
+
+
+# Exercise 7. 
+*Review filter(). Make a data frame from hpi_df that only has countries in the "Western World" Region.*
+```{r}
+(WestWrld_hpi <-hpi_df %>% filter(Region == "Western World"))
+```
+
+
+# Exercise 8. 
+*Review filter(). Make a data frame from hpi_df that only has countries with a LifeExp less than 55.*
+```{r}
+(less55LifExp_hpi <- hpi_df %>% filter(LifeExpectancy < 55))
+```
+
+
+# Exercise 9. 
+*Review group_by() and summarise(). Make a table of the number of countries in each Region. (Hint: recall that the n() function is the counting function in dplyr).*
+```{r}
+hpi_df %>%
+  group_by(Region) %>%
+  summarise(Country_Count = n()) %>%
+  pander::pander()
+```
+
+
+# Exercise 10. 
+*Review group_by() and summarise(). Make a table with the maximum LifeExp in each Region.*
+```{r}
+hpi_df %>%
+  group_by(Region) %>%
+  summarise(Max_LifeExp = max(LifeExpectancy)) %>%
+  pander::pander()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

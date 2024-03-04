@@ -1,0 +1,344 @@
+---
+title: "Class prep 11"
+author: "Matthew Maslow"
+format: html
+---
+
+# 11.1 Outliers and Area Plots
+
+## 11.1.1 Outliers
+
+```{r}
+library(MASS)
+library(tidyverse)
+theme_set(theme_minimal())
+
+ggplot(data = mammals, aes(x = body, y = brain)) +
+  geom_point()
+```
+
+```{r}
+ggplot(data = mammals |> filter(body <= 600), aes(x = body, y = brain)) +
+  geom_point() +
+  labs(caption = "Two species of elephant in the data were removed before constructing this plot.",
+       title = "Option 1")
+```
+
+```{r}
+## install.packages("ggbreak")
+library(ggbreak)
+ggplot(data = mammals, aes(x = body, y = brain)) +
+  geom_point() +
+  scale_x_break(c(750, 2500, 2700, 6400)) +
+  labs(title = "Option 2")
+```
+
+```{r}
+library(MASS)
+ggplot(data = mammals, aes(x = body, y = brain)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(title = "Option 3")
+```
+
+```{r}
+library(scales) 
+ggplot(data = mammals, aes(x = body, y = brain)) +
+  geom_point() +
+    scale_y_continuous(trans = log_trans(), 
+                         breaks = trans_breaks("log", function(x) exp(x)),
+                         labels = trans_format("log", math_format(e ^ .x))) +
+    scale_x_continuous(trans = log_trans(), 
+                         breaks = trans_breaks("log", function(x) exp(x)),
+                         labels = trans_format("log", math_format(e ^ .x)))
+```
+
+## 11.1.2 Line Plots and Area Plots
+
+```{r}
+library(babynames)
+babynames
+```
+
+```{r}
+baby_matt <- babynames |> filter(name == "Matthew" & sex == "M")
+ggplot(data = baby_matt, aes(x = year, y = n)) +
+  geom_line()
+```
+
+```{r}
+baby_friends <- babynames |> filter(name == "Monica" & sex == "F" |
+                                    name == "Phoebe" & sex == "F" |
+                                    name == "Rachel" & sex == "F" |
+                                    name == "Ross" & sex == "M" |
+                                    name == "Joseph" & sex == "M" |
+                                    name == "Chandler" & sex == "M")
+ggplot(data = baby_friends, aes(x = year, y = n)) +
+  geom_line(aes(colour = name)) +
+  scale_colour_brewer(palette = "Accent")
+```
+
+```{r}
+library(quantmod)
+library(lubridate)
+
+start <- ymd("2011-01-01")
+end <- ymd("2022-3-17")
+getSymbols(c("GME", "SPY"), src = "yahoo",
+           from = start, to = end)
+#> [1] "GME" "SPY"
+
+date_tib <- as_tibble(index(GME)) |>
+  rename(start_date = value)
+gme_tib <- as_tibble(GME)
+spy_tib <- as_tibble(SPY)
+all_stocks <- bind_cols(date_tib, gme_tib, spy_tib)
+
+stocks_long <- all_stocks |>
+  dplyr::select(start_date, GME.Adjusted, SPY.Adjusted) |>
+  pivot_longer(2:3, names_to = "Stock_Type", values_to = "Price") |>
+  mutate(Stock_Type = fct_recode(Stock_Type,
+                                 GameStop = "GME.Adjusted",
+                                 `S & P 500` = "SPY.Adjusted"
+                                 ))
+```
+
+```{r}
+stocks_gme <- stocks_long |> filter(Stock_Type == "GameStop")
+ggplot(data = stocks_gme, aes(x = start_date, y = Price)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "GameStop Stock Price Over Time")
+
+ggplot(data = stocks_gme, aes(x = start_date, y = Price)) +
+  geom_line(colour = "blueviolet") +
+  geom_area(fill = "blueviolet", alpha = 0.3) +
+  theme_minimal() +
+  labs(title = "GameStop Stock Price Over Time")
+```
+
+```{r}
+stocks_spy <- stocks_long |> filter(Stock_Type == "S & P 500")
+ggplot(data = stocks_spy, aes(x = start_date, y = Price)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "S & P 500 Stock Price Over Time")
+
+ggplot(data = stocks_spy, aes(x = start_date, y = Price)) +
+  geom_line(colour = "green4") +
+  geom_area(fill = "green4", alpha = 0.3) +
+  theme_minimal() +
+  labs(title = "S & P 500 Stock Price Over Time")
+```
+## Class prep 11
+
+### Exercise 1. 
+*For the three options for graphing outliers (removal, axis breaks, transforming the data), which do you think is best for the mammal data set? Give a one sentence reason.*
+
+I would go with option 3, because it allows us to vizually see a trend in the data, and it is easier to interpret the data, unlike the first and second options.
+
+
+### Exercise 2. 
+*In your filter() step for the babynames visualization, remove the sex == "F" or sex == "M" for one of the names. Why is a line plot no longer a good way to visualize the new data set.*
+
+```{r}
+baby_friends <- babynames |> filter(name == "Monica" & sex == "F" |
+                                    name == "Phoebe" & sex == "F" |
+                                    name == "Rachel" & sex == "F" |
+                                    name == "Ross" & sex == "M" |
+                                    name == "Joseph" & sex == "M" |
+                                    name == "Chandler" & sex == "M")
+ggplot(data = baby_friends, aes(x = year, y = n)) +
+  geom_line(aes(colour = name)) +
+  scale_colour_brewer(palette = "Accent")
+
+baby_friends <- babynames |> filter(name == "Monica" & sex == "F" |
+                                    name == "Phoebe" & sex == "F" |
+                                    name == "Rachel" & sex == "F" |
+                                    name == "Ross" & sex == "M" |
+                                    name == "Joseph" |
+                                    name == "Chandler" & sex == "M")
+ggplot(data = baby_friends, aes(x = year, y = n)) +
+  geom_line(aes(colour = name)) +
+  scale_colour_brewer(palette = "Accent")
+```
+
+By removing the the filter for Joseph being Male, it changes the line plot to having much variation, goes up and down aggressively, making data look like bar plot.
+
+
+### Exercise 3. 
+*Construct an area plot that shows both the Gamestop stock price and the S and P 500 stock price, using different colours and fills for the two stocks. Why might a line plot be a better visualization for this example?*
+
+```{r}
+stocks_gs <- stocks_long |> filter(Stock_Type == "GameStop")
+stocks_spy <- stocks_long |> filter(Stock_Type == "S & P 500")
+ggplot() +
+  geom_line(data = stocks_gs, aes(x = start_date, y = Price, color = "blue")) +
+  geom_line(data = stocks_spy, aes(x = start_date, y = Price, color = "red")) +
+  theme_minimal() +
+  labs(title = "GameStop and 'S & P 500' Stock Price Over Time") +
+  scale_colour_manual(values = c("blue", "red"),
+                      labels = c("GameStop", "S & P 500"))
+```
+
+Line plot is best for this example because it will allows us to better see the trend of the stock overtime, and easier to compare both stocks together overtime as well.
+
+
+
+# 11.2 Vizualizing "Large" Data Sets
+
+## 11.2.1 Large n
+
+```{r}
+library(tidyverse)
+diamonds |> nrow()
+```
+
+```{r}
+ggplot(data = diamonds, aes(x = carat, y = price)) +
+  geom_point()
+```
+
+```{r}
+ggplot(data = diamonds, aes(x = carat, y = price)) +
+  geom_hex() +
+  scale_fill_viridis_c() +
+  theme_minimal()
+```
+
+
+
+## 11.2.2 Really Large n
+
+*But what if your sample size was really large. Suppose n was 10,000,000. Using a geom that maps one point to each row will cause R to crash. Other geom’s, like geom_hex() can still work okay after a few seconds.*
+```{r}
+library(tidyverse)
+n <- 10000000
+x <- rnorm(n, 0, 1)
+y <- x * rgamma(n, 3, 2)
+df <- tibble(x = x, y = y)
+
+## if you run this next line, R will probably crash!
+## ggplot(data = df, aes(x = x, y = y)) +
+##  geom_point()
+
+# ggplot(data = df, aes(x = x, y = y)) +
+#   geom_hex() +
+#   scale_fill_viridis_c()
+```
+
+*Another option though, is to sample your data before plotting. Do you really need all 10,000,000 observations to see the patterns in your data? Probably not (though we will discuss this more in an exercise). So, you can use the slice_sample() function to choose some observations to plot, especially in the initial stages of your exploration:*
+
+```{r}
+df_small <- df |> slice_sample(n = 10000)
+ggplot(data = df_small, aes(x = x, y = y)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth()
+```
+
+## 11.2.3 Large p
+
+```{r}
+## install.packages("openintro")
+library(openintro)
+mlb_small <- mlb_players_18 |> filter(games > 50 & position != "P") ## only look at players 
+## who play at least 50 games in the season and are not pitchers
+```
+
+```{r}
+library(GGally)
+ggpairs(data = mlb_small, columns = 6:11)
+```
+
+```{r}
+ggcorr(data = mlb_small |> dplyr::select(4:ncol(mlb_small)))
+```
+
+## Exercises
+
+### Exercise 1. 
+*In the example where we sampled from the very large data set to construct a graphic, can you think of some possible flaws in this approach?*
+
+
+# 11.3 Statistical Learning Models
+
+```{r}
+library(tidymodels)
+library(titanic)
+
+## remotes::install_github("grantmcdermott/parttree")
+library(parttree)
+set.seed(123) ## For consistent jitter
+
+titanic_train$Survived = as.factor(titanic_train$Survived)
+
+## Build our tree using parsnip (but with rpart as the model engine)
+ti_tree =
+  decision_tree() %>%
+  set_engine("rpart") %>%
+  set_mode("classification") %>%
+  fit(Survived ~ Pclass + Age, data = titanic_train)
+
+## Plot the data and model partitions
+titanic_train %>%
+  ggplot(aes(x = Pclass, y = Age)) +
+  geom_jitter(aes(colour = Survived), alpha = 0.7) +
+  geom_parttree(data = ti_tree, aes(fill = Survived), alpha = 0.1) +
+  theme_minimal()
+```
+
+
+
+
+# 11.4 Your Turn
+
+## Exercise 1. 
+*Examine the following correlation plot from simulated data. Based on the correlation plot alone, does it look like there is any relationship between x1 and y? Does it look like there is any relationship between x2 and y?*
+
+```{r}
+set.seed(1414111)
+x1 <- rnorm(100, 0, 1)
+x2 <- seq(-1, 1, length.out = 100)
+y <- 4 + 0 * x1 + 1 * x2^2 + rnorm(100, 0, 0.1)
+df <- tibble(x1 = x1, x2 = x2, y = y)
+ggcorr(data = df)
+```
+Between x1 and y there could be some close similarity/corr but the colors do not entirely match up, and there is no relationship between x2 and y.
+
+
+## Exercise 2
+*Construct a simple scatterplot of y vs. x1. Then, construct a simple scatterplot of y vs. x2. Does it look like there is a relationship between y and x1? Between y and x2?*
+
+```{r}
+ggplot(data = df, aes(x = x1, y = y)) +
+  geom_point() +
+ggplot(data = df, aes(x = x2, y = y)) +
+  geom_point()
+```
+
+There does seem to be a relationship between y and x2 (quadratic curve almost/parabola), but not between y and x1.
+
+## Exercise 3. 
+*Using what you saw from the previous two exercises, explain why it is flawed to only look at a correlation plot to assess the relationship between variables.*
+
+The correlation plot does not show the relationship between the variables, it only shows the correlation between the variables. The scatterplot shows the relationship between the variables, and it is clear that the correlation plot does not show the relationship between the variables.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

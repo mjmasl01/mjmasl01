@@ -1,0 +1,146 @@
+---
+title: "Class Prep 8"
+author: "Matt Maslow"
+format: html
+---
+
+# section 8.1
+
+```{r}
+library(tidyverse)
+library(broom)
+library(here)
+theme_set(theme_minimal())
+
+coffee_df <- read_csv(here("data/coffee_ratings.csv"))
+coffee_mod <- lm(total_cup_points ~ species + aroma + flavor +
+                   sweetness + moisture,
+   data = coffee_df)
+```
+
+```{r}
+summary(coffee_mod)
+```
+```{r}
+summary(coffee_mod)$coefficients["moisture", 4]
+```
+
+
+```{r}
+tidy(coffee_mod)
+```
+
+
+```{r}
+tidy(coffee_mod) |> select(p.value)
+```
+
+```{r}
+tidy(coffee_mod) |> filter(term == "aroma")
+```
+
+## Section 8.1.2: glance()
+
+```{r}
+glance(coffee_mod)
+```
+
+## Section 8.1.3: augment()
+
+```{r}
+augment(coffee_mod)
+```
+
+```{r}
+augment_df <- augment(coffee_mod)
+augment_df |> filter(.cooksd > 1)
+```
+
+```{r}
+ggplot(data = coffee_df, aes(x = total_cup_points)) +
+  geom_histogram(bins = 15, fill = "white", colour = "black")
+```
+```{r}
+augment_df |> filter(.hat > 0.2)
+```
+
+```{r}
+augment_df |> filter(.std.resid > 3 | .std.resid < -3)
+```
+
+```{r}
+ggplot(data = augment_df |> filter(.fitted > 25),
+       aes(x = .fitted, y = .resid)) +
+  geom_point() 
+```
+
+## Exercises
+
+### Exercise 1. 
+*Examine the penguins data set in the palmerpenguins package:*
+
+```{r}
+library(palmerpenguins)
+penguins
+```
+
+*Fit a linear regression model with body_mass_g as the response variable and species and bill_length_mm as the predictors. Note that penguins with missing values for any of these three variables will be dropped from the analysis.*
+
+```{r}
+penguins_mod <- lm(body_mass_g ~ species + bill_length_mm, data = penguins)
+summary(penguins_mod)
+```
+
+### Exercise 2. 
+*Create a table of summary output, including coefficient estimates, standard errors, test statistics, and p-values, using one of the broom functions.*
+
+```{r}
+tidy(penguins_mod)
+```
+
+
+### Exercise 3. 
+*Use glance() to glance at some of the relevant model statistics.*
+
+```{r}
+glance(penguins_mod)
+```
+
+
+### Exercise 4. 
+*Using augment(), create a plot of the residuals vs. the fitted values and evaluate the constant variance assumption.*
+
+```{r}
+augment(penguins_mod) |> ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_smooth(se = FALSE)
+```
+
+Look at the fits versus residuals plot, can conclude that the residuals are roughly lineaer at zero, but not entirely.
+
+
+### Exercise 5. 
+*Using augment(), check to see if there are any penguins that are influential. Use 0.75 as your cut-off value for Cook’s distance.*
+
+```{r}
+augment(penguins_mod) |> filter(.cooksd > 0.75)
+```
+
+No influential penguins are present in this model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

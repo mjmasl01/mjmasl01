@@ -1,0 +1,250 @@
+---
+title: "Class Prep 10"
+author: "Matt Maslow"
+format: html
+---
+
+# Section 10.1
+
+```{r}
+library(tidyverse)
+library(here)
+library(broom)
+theme_set(theme_minimal())
+
+titanic_df <- read_csv(here("data/titanic.csv"),
+                       col_types = list(Pclass = col_factor())) |>
+  mutate(Pclass = fct_recode(Pclass,
+                             "1st" = "1",
+                             "2nd" = "2",
+                             "3rd" = "3"))
+titanic_df
+```
+
+## 10.1.1 Review of Model
+
+We will first consider a model with Survived as the response variable and Age as the predictor variable. The fact that Survived is a binary categorical variable means that standard linear regression would not be appropriate. Recall that, in logistic regression, we model the log-odds of survival:
+
+$log\left(\frac{\pi}{1 - \pi}\right) = \beta_0 + \beta_1 Age$
+
+where $\pi$ is the probability that the passenger survived. Also, recall that the odds of survival are equal to $\frac{\pi}{(1 -\pi)}$ so that odds are on a scale from 0 to Infinity. We can algebraically solve for $\pi$ as:
+
+$\pi = \frac{\text{exp}(\beta_0 + \beta_1 Age)}{1 + \text{exp}(\beta_0 + \beta_1 Age)}$
+
+
+
+
+## 10.1.2 Fitting the Model
+
+```{r}
+titanic_mod <- glm(Survived ~ Age,
+                   data = titanic_df, family = "binomial")
+titanic_mod
+```
+
+*The broom package functions augment(), tidy(), and glance() can also be used on models fit with glm():*
+```{r}
+titanic_mod |> tidy()
+```
+
+```{r}
+ggplot(data = titanic_df, aes(x = Age, y = Survived)) +
+  geom_jitter(height = 0.05) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) +
+  theme_minimal()
+```
+
+
+## 10.1.3 Interpreting Coefficients
+
+```{r}
+titanic_mod |> tidy()
+```
+Because this model was linear on the log-odds scale, the interpretation of the -0.00261 value is linear on the log-odds scale: The model predicts that a one year increase in age is associated with a 0.00261 decrease in the log-odds of survival.
+
+This interpretation is practically useless: what does it mean to have that amount decrease in log-odds of survival? If we take $e^{-0.00261} = 0.997$, we can interpret the resulting value on the odds scale as a multiplicative change in odds. You likely discussed why you can do this in STAT 213 but we won’t focus on it again here. The resulting interpretation is something like “The model predicts that a one year increase in age is associated with a multiplicative change in the odds of survival of 0.997 times.” In other words, the model predicts that, for a one year increase in age, odds of survival are the predicted odds of survival of the previous year of age times 0.997.
+
+Again, this interpretation is not particularly useful or effective. And, we are in the simplest possible case of logistic regression: a model with just one predictor! Interpretations are even more challenging when there are multiple predictors, interactions, squared terms, etc. The goal of the next section is to use visualization to help communicate model results from logistic regression.
+
+
+## Exercises
+
+### Exercise 1. 
+*Fit a logistic regression model with Fare as a predictor. Obtain summary output with tidy() and use ggplot2 to construct a plot of the model.*
+
+```{r}
+titanic_mod_fare <- glm(Survived ~ Fare,
+                        data = titanic_df, family = "binomial")
+titanic_mod_fare |> tidy()
+
+titanic_mod_fare |> ggplot(aes(x = Fare, y = titanic_mod_fare$fitted.values)) +
+  geom_jitter(height = 0.05) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) +
+  theme_minimal() +
+  labs(title = "Logistic Regression Model of Survival on Fare",
+       x = "Fare",
+       y = "Predicted Probability of Survival")
+```
+
+### Exercise 2. 
+*Fit a logistic regression model with Sex as the predictor. Make an attempt at interpreting the resulting fitted coefficient for Sex on either the log-odds scale or the odds scale (keeping in mind that Sex is categorical so your interpretation should be comparing odds of survival of female and male passengers).*
+
+```{r}
+titanic_mod_sex <- glm(Survived ~ Sex,
+                        data = titanic_df, family = "binomial")
+titanic_mod_sex$coefficients %>% exp()
+```
+
+*Intercept* - When the fare is zero the probability of survival is 2.88 times higher.
+
+*Sex(male)* - If the passenger is Male then the probability of their survival are 0.081 times higher.
+
+
+
+# 10.2 Visualizing Logistic Regression Models
+
+Our basic strategy for visualizing models is to
+
+1. fit the model with glm().
+
+2. construct a grid of predictor values with the data_grid() function from the modelr package.
+
+3. Use the augment() function from the broom package on the data grid in (2) to to obtain predicted probabilities according to the model for each row in the grid.
+
+4. Use ggplot2 to construct a meaningful plot with the predicted probabilities.
+
+```{r}
+titanic_large <- glm(Survived ~ Age + Sex + Pclass, data = titanic_df,
+                     family = "binomial")
+titanic_large |> tidy()
+```
+
+
+We next use modelr to create a grid of predictors that we want to make predictions for and then gather these predictions using the titanic_large model:
+
+```{r}
+library(modelr) # used for collecting predictions
+grid <- titanic_df |>
+  data_grid(
+    Age = seq_range(Age, n = 10),
+    Sex = c("female", "male"),
+    Pclass = c("1st", "2nd", "3rd")
+  ) 
+grid
+```
+```{r}
+aug_surv <- augment(titanic_large, newdata = grid,
+                    se_fit = TRUE)
+aug_surv
+```
+
+We will complete the rest of this exercise as a class.
+
+### Exercise 1. 
+*Examine the .fitted column in aug_surv. What are these values? Why are they not between 0 and 1?*
+
+Those fitted values are all on the `odds scale`, which is gotten by exponentiating the coeficients of the model, therefore, they are scaled making not values between 0 and 1.
+
+
+### Exercise 2. 
+*Make a plot of the values of .fitted (without modifying them).*
+
+```{r}
+aug_surv |> ggplot(aes(x = Age, y =.fitted, color = Sex)) +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal()
+```
+
+
+
+### Exercise 3. 
+Convert .fitted to predicted probabilities $\hat{\pi}$ with the following formula. Note that exp(3.2) is R code for $e^{3.2}$
+$$\hat{\pi} = \frac{e^{pred}}{(1 + e^{pred})}$$
+
+```{r}
+aug_surv_new <- aug_surv |>
+  mutate(.fitted = exp(.fitted) / (1 + exp(.fitted)))
+aug_surv_new
+```
+
+
+### Exercise 4: 
+*Make the plot again, using predicted probabilities instead of .fitted values.*
+
+```{r}
+aug_surv_new |> ggplot(aes(x = Age, y =.fitted, color = Sex)) +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal()
+```
+
+# 10.3 Your Turn
+### Exercise 1. 
+*Add an Sex:Pclass interaction term to the previous model and fit the model with glm().*
+
+```{r}
+titanic_large_int <- glm(Survived ~ Age + Sex + Pclass + Sex:Pclass, data = titanic_df,
+                     family = "binomial")
+titanic_large_int |> tidy()
+```
+
+
+### Exercise 2. 
+*Obtain model predictions for both the previous model (without the interaction) and the new model (with the interaction). Convert the resulting .fitted column to predicted probabilities.*
+```{r}
+aug_surv_new
+```
+
+```{r}
+library(modelr) # used for collecting predictions
+grid2 <- titanic_df |>
+  data_grid(
+    Age = seq_range(Age, n = 10),
+    Sex = c("female", "male"),
+    Pclass = c("1st", "2nd", "3rd"),
+    SexPclass = c("Sexmale:Pclass1st", "Sexmale:Pclass2nd", "Sexmale:Pclass3rd",
+                  "Sexfemale:Pclass1st", "Sexfemale:Pclass2nd", "Sexfemale:Pclass3rd")
+  ) 
+grid2
+aug_surv2 <- augment(titanic_large_int, newdata = grid2,
+                    se_fit = TRUE)
+aug_surv2
+
+aug_surv_new2 <- aug_surv2 |>
+  mutate(.fitted = exp(.fitted) / (1 + exp(.fitted)))
+aug_surv_new2
+```
+
+
+
+
+### Exercise 3. 
+*Construct a graphic that shows how the two models differ.*
+
+```{r}
+aug_surv_new |> ggplot(aes(x = Age, y =.fitted, color = Sex)) +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal()
+
+aug_surv_new2 |> ggplot(aes(x = Age, y =.fitted, color = Sex)) +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal()
+```
+
+The model including the interaxction seems to hold a before more curvature than the model without the interaction.
+
+
+### Exercise 4. 
+*Which model is better? Use glance() on each model to obtain some model summary statistics and determine which model is the better “fit.”*
+
+```{r}
+titanic_large |> glance()
+```
+```{r}
+titanic_large_int |> glance()
+```
+
+They technically have the same exaxct fit

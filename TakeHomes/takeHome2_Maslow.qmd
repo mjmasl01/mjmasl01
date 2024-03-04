@@ -1,0 +1,202 @@
+---
+title: "Take Home 2"
+author: "Matthew Maslow"
+date: "2/14/2024"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+`Statement of Integrity:` 
+“All work presented is my own, and I have followed all rules for collaboration. If I used any AI on this assignment, I have clearly stated both (1) what my search prompt was and (2) what I used from the AI answer.””
+
+
+`Collaboration Reminder:` 
+You may work with other students in the class on the quiz, but you must list who you worked with at the top of your quiz. Write the name of any student(s) that you collaborated with in the space below this (ignore this if you did not collaborate with any students).
+
+              Ben Moolman
+
+
+*The variables in the data set are:*
+
+`adm_id`, a unique ID assigned to each student,
+`sex`, the sex of the student,
+`major1`, `major2`, `major3`, `minor1`, `minor2`, `minor3`, the majors and minors of the student.
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+df <- read_excel(here::here("data/slu_graduates_17_23.xlsx"))
+
+## fixes error in the data
+df <- df |> mutate(across(everything(),
+                          .fns = ~replace(., . ==  "STATS" , "STAT")))
+```
+
+
+# Question 1 
+*(4 points). Make a plot that shows the “other” majors of each STAT major student in the data set, along with the count of each major. This plot should show the most popular majors that statistics majors tend to major2 or major3. Hint: You will need dplyr and forcats: you may want to examine old DATA/STAT 234 materials for a refresher.*
+
+
+## Hint 1. 
+*In class, recall that we pivoted the data set so that there was one column for majors and minors and we then subsequently filtered out any row that was minor1, minor2, or minor3 in order to create the plot of gender balance in majors. We should do the same here to get started.*
+
+## Hint 2. 
+*Next, we should create a new data frame from the data frame created in Hint 1 that has only STAT disciplines. We can then semi_join() the pivoted data frame from Hint 1 with the STAT only data frame by adm_id. Doing so gives us a new data frame with only students who are STAT majors but also contains any other majors for those students.*
+
+```{r}
+df <- 
+  df %>%
+  select(-starts_with("minor")) %>%
+  pivot_longer(cols = starts_with("major"), names_to = "major_num", values_to = "major", values_drop_na = TRUE) 
+```
+```{r}
+statDF <- 
+  df %>%
+  filter(major == "STAT") 
+```
+```{r}
+df %>%
+  semi_join(y = statDF, by = "adm_id") %>% # semi_join() keeps only the rows in the first data frame that have a match in the second data frame 
+  select(adm_id, major, major_num) %>%     # based on studID, so we can find what otehr majors a STAT major could potential have
+  filter(major != "STAT") %>%
+  group_by(major) %>%                       # group by major
+  summarise(n = n()) %>%                    # count the number of students in each major
+  ggplot(aes(x = fct_reorder(major, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Other Majors of STAT Majors",
+       x = "Major",
+       y = "Count") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+# Question 2 
+*(3 points). In class, we used a majors data set to create a plot of the proportion of female students within each major at SLU. Modify this plot so that there are error bars instead of bars or lollipops so that variability in the estimates of our proportions is shown.*
+
+```{r}
+femaleDF <- 
+  df %>% 
+  select(-starts_with("minor")) %>%
+  pivot_longer(starts_with("major"), names_to = "major_num",
+               values_to = "major") %>%
+  filter(!is.na(major)) %>%
+  group_by(sex, major) %>%
+  summarise(n_majors = n()) %>%
+  ungroup() %>%
+  pivot_wider(names_from = sex, values_from = n_majors) %>%
+  mutate(prop_female = `F` / (`F` + M),
+         total_students = `F` + M,
+         se = sqrt(prop_female * (1-prop_female)/ total_students) ) %>%
+  filter(total_students >= 70) %>%
+  mutate(major = fct_reorder(major, prop_female))
+
+mcss_df <- femaleDF %>% filter(major %in% c("STAT", "MATH", "CS"))
+
+femaleDF %>%
+  ggplot(aes(major, prop_female)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = prop_female - se, ymax = prop_female + se), width = 0.5) +
+  geom_errorbar(data = mcss_df, aes(ymin = prop_female - se, ymax = prop_female + se), color = "green", width = 0.5) +
+  geom_point(data = mcss_df, color = "hotpink") +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "Proportion of Females in Majors",
+    x = "Major",
+    y = "Proportion of Females") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text.y = element_text(size = 6)) +
+  labs(caption = "Data source: SLU Instiutional Research Office and highlighted majors are in the\n MCSS department, and majors are with counts of students of 70 or more.")
+```
+
+
+
+
+# Question 3
+*(3 points). Examine the alcohol.csv data set that you may have used as an introductory data set in DATA/STAT 234:*
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(maps)
+library(mapdata)
+alcohol_df <- read_csv(here("data/alcohol.csv"))
+world <- map_data("world")
+
+# using anti-join at the bottom I was able to determine alter or add the country names to the alcohol_df data set, the mapping could work entirely
+alcohol_df[alcohol_df$country == "Russian Federation", "country"] <- "Russia"
+alcohol_df[alcohol_df$country == "Bosnia-Herzegovina", "country"] <- "Bosnia and Herzegovina"
+alcohol_df[alcohol_df$country == "Cote d'Ivoire", "country"] <- "Ivory Coast"
+alcohol_df[alcohol_df$country == "Cabo Verde", "country"] <- "Senegal"
+alcohol_df[alcohol_df$country == "Congo", "country"] <- "Republic of Congo"
+alcohol_df[alcohol_df$country == "DR Congo", "country"] <- "Democratic Republic of the Congo"
+alcohol_df[alcohol_df$country == "St. Kitts & Nevis", "country"] <- "Saint Kitts"
+alcohol_df[alcohol_df$country == "St. Lucia", "country"] <- "Saint Lucia"
+alcohol_df[alcohol_df$country == "St. Vincent & the Grenadines", "country"] <- "Saint Vincent"
+alcohol_df[alcohol_df$country == "Grenadines", "country"] <- "Saint Vincent"
+alcohol_df[alcohol_df$country == "Grenada", "country"] <- "Saint Vincent"
+alcohol_df[alcohol_df$country == "Sao Tome & Principe", "country"] <- "Sao Tome and Principe"
+alcohol_df[alcohol_df$country == "Trinidad & Tobago", "country"] <- "Trinidad and Tobago"
+alcohol_df[alcohol_df$country == "Macedonia", "country"] <- "North Macedonia"
+alcohol_df[alcohol_df$country == "Tuvalu", "country"] <- "UK"
+alcohol_df[alcohol_df$country == "United Kingdom", "country"] <- "UK"
+world[world$region == c("Antigua", "Barbuda"), "region"] <- "Antigua & Barbuda"
+world[world$region == c("Trinidad", "Tobago"), "region"] <- "Trinidad and Tobago"
+# add antarctica to the world map and make it have zero counts for alcohol
+alcohol_df <- alcohol_df %>% add_row(country = "Antarctica", beer_servings = 0, spirit_servings = 0, wine_servings = 0, total_litres_of_pure_alcohol = 0)
+# now add greenland
+alcohol_df <- alcohol_df %>% add_row(country = "Greenland", beer_servings = 0, spirit_servings = 0, wine_servings = 0, total_litres_of_pure_alcohol = 0)
+alcohol_df <- alcohol_df %>% add_row(country = "South Sudan", beer_servings = 0, spirit_servings = 0, wine_servings = 0, total_litres_of_pure_alcohol = 0)
+
+# do an anti-join to see which countries are not in the world data set or labeled differently
+anti_join(alcohol_df, world, by = c("country" = "region"))
+```
+
+
+*The data set has the following variables on countries throughout the world:*
+
+`country`, the name of the country
+`beer_servings`, the number of beer servings per person per year
+`spirit_servings`, the number of spirit servings per person per year
+`wine_servings`, the number of wine servings per person per year
+`total_litres_of_pure_alcohol`, the number of litres of pure alcohol consumed per person per year
+
+*Construct a map of the beer_servings variable. You should choose an appropriate projection and change the default color scheme of your map.*
+
+
+```{r}
+ggplot() +
+  geom_map(data = world, map = world,
+           aes(x = long, y = lat, map_id = region),
+           fill = "white", color = "black") +
+  geom_map(data = alcohol_df, map = world,
+           aes(map_id = country, fill = beer_servings),
+           color = "black") +
+  # now add projection
+  coord_map(projection = "mercator", xlim = c(-180,180)) +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  labs(title = "Beer Servings by Country",
+       fill = "Beer Servings") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+
+
+
+
+
+
+
+
+

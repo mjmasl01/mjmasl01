@@ -1,0 +1,88 @@
+---
+title: "Class Prep 7"
+author: "Matthew Maslow"
+format: html
+---
+
+
+```{r}
+library(tidyverse)
+theme_set(theme_minimal())
+
+library(here)
+pokemon_df <- read_csv(here("data/pokemon_full.csv"))
+pokemon_height <- pokemon_df |> 
+  filter(Type %in% c("Bug", "Electric", "Fighting", "Flying",
+                     "Grass", "Steel")) |>
+  group_by(Type) |>
+  summarise(avg_height = mean(height)) |>
+  mutate(Type = fct_reorder(Type, avg_height))
+
+ggplot(data = pokemon_height, aes(x = Type, y = avg_height)) +
+  geom_col() +
+  coord_flip()
+```
+
+
+# Exercise 1. 
+*What can’t we see from this graphic that would be useful?*'
+
+We can't see the distribution of the height variable in each Pokemon type. We can only see the average height of each type, and we also cannot view any potential outliers or inlfuential points. Also hard to see spread/shape of data
+
+
+# Exercise 2. 
+*Make a different plot that shows more relevant features about the distribution of the height variable in each Pokemon type.*
+
+```{r}
+ggplot(data = pokemon_height, aes(x = Type, y = avg_height)) +
+  geom_point(data = pokemon_df, aes(x = Type, y = height), alpha = 0.2) +
+  geom_boxplot(data = pokemon_df, aes(x = Type, y = height), alpha = 0.2) +
+  coord_flip()
+```
+
+
+```{r}
+## install.packages("openintro")
+library(openintro)
+data(mlb_players_18)
+mlb_sum <- mlb_players_18 |> group_by(position) |>
+  summarise(med_hr = median(HR)) |>
+  mutate(position = fct_reorder(position, med_hr))
+ggplot(data = mlb_sum, aes(x = position, y = med_hr)) +
+  geom_col() +
+  coord_flip()
+```
+
+
+# Exercise 3. 
+*“Fix” the previous plot to show the underlying variability in the number of homeruns for each player position by making a set of boxplots.*
+
+```{r}
+ggplot(data = mlb_players_18, aes(x = position, y = HR)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+
+# Exercise 4.
+
+*Consider a news channel covering a developing hurricane. Which of these types of graphs would better help the general public with the potential variability of the hurricane’s path?*
+
+Option 2, because it shows the variability of the hurricane's path, and the general public would be able to see the potential range of the hurricane's path. Option 1 only shows different paths of different hurricanes, and does not show the potential variability of the path. 
+
+
+# Exercise 5.
+
+*Next, consider fivethirtyeight.com’s coverage of the 2020 presidential election. Much of their forecast given on this page can be simply summarised by saying they predict Biden to win the election with 89% probability. So, why make the supplementary graphics that say the same thing but use a lot more space?*
+
+This is because by faceting to subplots we are able to look at each individual factor and how they vary amongst each other and how they contribute to the overall probability. This can help us understand the model better and see how different factors contribute to the overall probability. 
+
+
+
+
+
+
+
+
+
+

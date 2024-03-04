@@ -1,0 +1,106 @@
+---
+title: "Take Home 3"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+# data
+
+```{r}
+library(tidyverse)
+library(broom)
+lego_df <- read_csv(here::here("data/lego_sample.csv")) |> 
+  mutate(minifigures = if_else(is.na(minifigures),
+                               true = 0,
+                               false = minifigures))
+```
+
+# Question 1
+*(1 point). In R, fit the model with pieces and theme as predictors using lm(). Then, provide a summary tibble of output with tidy().*
+
+```{r}
+lego_model <- lm(price ~ pieces + theme, data = lego_df)
+summary(lego_model) |> tidy()
+```
+
+# Quesiton 2
+*(1 point). Interpret the fitted model coefficient for the Friends theme, b_3,in context of the problem.*
+
+In the context of the problem, the coefficient for $B_3$ themeFriends, it estimated to decrease the price of the lego's by $10.88 everytime the theme is Friends, and given that all other predictors remain constant.
+
+
+# Question 3
+*(1 point). Using augment(), determine if there are any observations with a cook’s distance value above 0.75, a common cut-off for determining if there are influential points.*
+
+```{r}
+library(modelr)
+grid <-lego_df |> data_grid(
+  pieces = seq_range(lego_df$pieces, n = 25),
+  theme = c("DUPLO®", "Friends", "City")
+)
+aug_lego <- augment(lego_model, newdata = grid, se_fit = TRUE, interval = "prediction")
+aug_lego <- aug_lego |> mutate(cooks_d = cooks.distance(lego_model))
+aug_lego |> filter(cooks_d > 0.75)
+```
+
+
+There are no influential points are present in the lego model, as there are no observations with a cook's distance value above 0.75.
+
+
+
+# Question 4 
+*(1 point). Add mini figures, the number of minifigures included in the set, as a predictor to the model that already has pieces and theme. Interpret the fitted model coefficient for mini figures, b_4, in context of the problem.*
+
+```{r}
+lego_model2 <- lm(price ~ pieces + theme + minifigures, data = lego_df)
+summary(lego_model2) |> tidy()
+```
+
+In this context of the data, $b_4$ represents, the estimated increase in price for each additional minifigure included in the set, the overall price will increase by $3.73, given that all the other predictors remain constant.
+
+
+# Question 5
+*(1 point). What would an interaction between theme and minifigures allow for? Explain what adding an interaction between these two predictors would allow the model to do, to someone with little statistical background. (You do not need to actually add the interaction term)*
+
+```{r}
+lego_model3 <- lm(price ~ pieces + theme + minifigures + theme:minifigures, data = lego_df)
+summary(lego_model3) |> tidy()
+```
+
+This interaction would predict the coefficients for more specific lego combinations, so not the theme is acting as a predicting for the minifigures as well, a scalar in a way. For example, if the theme is Friends, the minifigures will have a different effect on the price than if the theme is City or DUPLO®. This would allow the model to predict the price of lego sets more accurately, as it would be able to account for the different effects of minifigures on the price of lego sets based on the theme.
+
+
+# Question 6
+*(1 point). Suppose that you want to visualize the model with pieces, theme, and minifigures as predictors (with no interactions). Sketch out a visualization that incorporates all 3 predictors and the response in some way.You do not need to turn anything in for this question, but completing this may be good practice for the handwritten quiz.*
+
+
+
+
+# Question 7
+*(4 points). Construct the visualization that you sketched out in R.*
+*Note that your visualization should show that an interaction term between pieces and theme would improve the model fit: the slope between price and pieces looks like it should be much steeper for the DUPLO theme than the other two themes.*
+
+```{r}
+lego_df$minifigures <- cut(lego_df$minifigures, breaks = 3, labels = c("0-5", "6-10", "11-15"), )
+ggplot(lego_df, aes(x = pieces, y = price, shape = minifigures)) +
+  # make the points larger
+  geom_point(size=2) +
+  geom_smooth(method = "lm", se = FALSE, size = 1) +
+  facet_wrap(~theme) +
+  labs(title = "Price of Lego Sets by Pieces, Theme, and Minifigures",
+       x = "Pieces",
+       y = "Price",
+       color = "Theme",
+       shape = "Minifigures") +
+  scale_shape_manual(values = c(8, 1, 6)) +
+  theme_minimal()
+```
+
+
+
+
+
+

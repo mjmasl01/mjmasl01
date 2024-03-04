@@ -1,0 +1,43 @@
+---
+title: "Exam1: Coding Portion"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+# Question 1 
+*(4 points). Using the diamonds data set, create the following plot. For the first plot, you should change the default colour and fill of your histogram to values other than the default, but they do not need to match the colorus given below exactly.*
+
+```{r}
+library(tidyverse)
+diamonds
+```
+```{r}
+diamonds %>%
+  ggplot(aes(x = price, col = "red")) +
+  geom_histogram() +
+  facet_wrap(vars(cut)) +
+  theme_minimal()
+```
+
+# question 2
+*(4 points). Change 2 theme options of your plot in the previous question. At least one of these changes should involve the use of either element_rect() or element_line() in some way. The following gives the reference page we used in class: https://ggplot2.tidyverse.org/reference/theme.html*
+
+```{r}
+diamonds %>%
+  ggplot(aes(x = price, col = "red")) +
+  geom_histogram() +
+  facet_wrap(vars(cut)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(face = "bold")) +
+  theme(rect = element_rect(fill = "blue")) # still cant see to get this to work and idk why i give up
+```
+
+# Question 3 
+*(2 points). Push your .qmd file to your GitHub repository. For this question, give the link to your GitHub repository here.*
+
+https://github.com/mjmasl01/mjmasl01.git
+
+
+

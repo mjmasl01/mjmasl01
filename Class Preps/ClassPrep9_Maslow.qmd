@@ -1,0 +1,403 @@
+---
+title: "Class Prep 9"
+author: "Matt Maslow"
+format: html
+---
+
+
+# Section 9
+
+```{r}
+library(openintro)
+library(tidyverse)
+theme_set(theme_minimal())
+evals <- openintro::evals
+```
+
+## Section 9.1
+
+Our basic strategy for visualizing models is to
+
+*fit the model of interest with lm().*
+
+*construct a grid of predictor values with the data_grid() function from the modelr package.*
+
+*Use the augment() function from the broom package on the data grid in (2) to predict the response variable according to the model for each row in the grid.*
+
+*Use ggplot2 to construct a meaningful plot with the model predictions from (3).*
+
+We will begin by fitting a linear regression model with score as the response and age (in years) as the predictor. Note that we can easily visualize this model because of how simple it is:
+
+```{r}
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+*Step 1:* Fit the model.
+
+```{r}
+library(broom)
+mod_age <- lm(score ~ age, data = evals) 
+mod_age |> tidy()
+```
+
+
+*Step 2:* Creat a grid of predictor values.
+
+```{r}
+library(modelr)
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 6)
+  ) 
+grid
+```
+
+
+*Step 3:* Use augment()
+
+```{r}
+aug_age <- augment(mod_age, newdata = grid,
+                   interval = "confidence")
+aug_age
+```
+
+Step 4: Use ggplot2.
+
+```{r}
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_age, aes(x = age, y = .fitted),
+            colour = "blue", linewidth = 1.2)
+```
+
+*using geom_ribbon()* function to add a measure of uncertainty to our plot and generate the 95% confidence band:
+
+```{r}
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_age, aes(x = age, y = .fitted),
+            colour = "blue", linewidth = 1.2) +
+  geom_ribbon(data = aug_age, aes(y = .fitted,
+                                  ymin = .lower,
+                                  ymax = .upper), 
+              alpha = 0.4)
+```
+
+
+### Exercise 1. 
+*As we saw above, the grey “band” around the fitted regression line represents 95% confidence intervals for the mean response (score) for particular values of the predictor (age). In STAT 213, you also discussed 95% prediction intervals for a new observation’s response (score) for particular values of the predictor (age). What is the difference between a 95% confidence interval and a 95% prediction interval?*
+
+A 95% confidence interval provides a range of values around a sample estimate, like the mean, indicating the likely range in which the true population parameter lies with 95% confidence. In contrast, a 95% prediction interval, gives a range within which we expect a future individual observation to fall with 95% probability, considering both data variability and model uncertainty. While both intervals involve ranges, the confidence interval pertains to estimating population parameters, whereas the prediction interval focuses on predicting the likely range for individual observations in a regression context.
+
+
+### Exercise 2.
+*Modify the code so that the grey band reflects 95% prediction intervals instead of 95% confidence intervals for the mean.*
+
+```{r}
+predict_age <- predict(mod_age, newdata = grid, interval = "prediction")
+
+new_data <- data.frame(age = grid$age)
+
+prediction_df <- cbind(new_data, as.data.frame(predict_age))
+
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = prediction_df, aes(x = age, y = fit),
+            color = "blue", size = 1.2) +
+  geom_ribbon(data = prediction_df, aes(y = fit, ymin = lwr, ymax = upr), 
+              alpha = 0.4) +
+  labs(title = "Fitted Line and Prediction Interval",
+       x = "Age",
+       y = "Score") +
+  theme_minimal()
+
+```
+
+
+### Exercise 3. 
+*By “hand”, verify that the .fitted value in the first row of aug_age can be calculated simply by plugging in 29 into the fitted regression equation obtained from mod_age.*
+
+```{r}
+mod_age |> tidy()
+```
+```{r}
+aug_age[1,] |> select(.fitted)
+```
+```{r}
+-0.005938225*(29) + 4.461932354
+```
+
+Yes, they do match!
+
+
+
+### Exercise 4. 
+*In data_grid(age = seq_range(age, n = 6)), why does it not matter as much what value is chosen for n in this example? Change n to be a different integer and verify that the plot does not substantially change.*
+
+```{r}
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 16)
+  )
+grid
+```
+```{r}
+predict_age <- predict(mod_age, newdata = grid, interval = "prediction")
+
+new_data <- data.frame(age = grid$age)
+
+prediction_df <- cbind(new_data, as.data.frame(predict_age))
+
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_age, aes(x = age, y = .fitted),
+            color = "blue", size = 1.2) +
+  geom_ribbon(data = aug_age, aes(y = .fitted, ymin = .lower, ymax = .upper), 
+              alpha = 0.4, fill = "blue") +
+  geom_line(data = prediction_df, aes(x = age, y = fit),
+            color = "red", size = 1.2, linetype = "dashed") +
+  geom_ribbon(data = prediction_df, aes(y = fit, ymin = lwr, ymax = upr), 
+              alpha = 0.4, fill = "red") +
+  labs(title = "Fitted Line and Prediction Interval w/ n=16",
+       x = "Age",
+       y = "Score") +
+  theme_minimal() 
+```
+
+The results do not seem to change, therefore, the value of n is not significant.
+
+
+### Exercise 5. 
+*Fit the following model, which includes an age^2 term. Then, run the rest of the code in the chunk to obtain predictions for the age values in grid with both the mod_age model and the mod_agesq model.*
+*Use ggplot to make a plot that has (1) the fitted line from mod_age and the fitted curve from mod_agesq, where the line/curves are coloured by the model type*
+*(2) has the data points in the background of the plot. The code below stacks the two augmented data frames on top of each other and creates a new column called model that gives the names of the data frames as its levels.*
+
+```{r}
+aug_age <- augment(mod_age, newdata = grid,
+                   interval = "confidence")
+
+mod_agesq <- lm(score ~ age + I(age ^ 2), data = evals) 
+
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 6)
+  ) 
+
+aug_agesq <- augment(mod_agesq, newdata = grid,
+                     interval = "confidence")
+aug_agesq
+
+plot_df <- bind_rows(lst(aug_age, aug_agesq), .id = "model")
+plot_df
+```
+```{r}
+plot_df %>%
+  ggplot(aes(colour = model)) +
+  geom_line(data = filter(plot_df, model == "aug_age"), aes(x = age, y = .fitted)) +
+  geom_line(data = filter(plot_df, model == "aug_agesq"), aes(x = age, y = .fitted)) +
+  geom_point(aes(x = age, y = .fitted)) +
+  labs(title = "Fitted Line and Curve",
+       x = "Age",
+       y = "Fitted Value") +
+  theme_minimal()
+
+ggplot(plot_df, aes(x = age, y = .fitted, colour = model)) +
+  geom_line() +
+  geom_point() +
+  geom_ribbon(aes(y = .fitted,
+                  ymin = .lower,
+                  ymax = .upper,
+                  fill = model), 
+              alpha = 0.4)
+```
+
+Between the two models they both compare very closley except the first and last point where they fray a little off from one another.
+
+
+
+## Section 9.2
+
+```{r}
+mod_comp <- lm(score ~ age + bty_avg + age:bty_avg + gender,
+               data = evals)
+mod_comp |> tidy()
+```
+
+
+```{r}
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 6),
+    bty_avg = seq_range(bty_avg, n = 6),
+    gender = c("female", "male")
+  ) 
+grid
+```
+
+```{r}
+aug_int <- augment(mod_comp, newdata = grid,
+                   interval = "confidence")
+aug_int
+```
+
+
+
+### Exercise 1. 
+*By hand, sketch a plot that shows the predictions from the mod_comp model in a meaningful way.*
+
+On graph paper in your folder
+
+### Exercise 2. 
+*Make the plot that you sketched in the previous exercise.*
+
+```{r}
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg)), linewidth=2) +
+  facet_wrap(~gender) +
+  scale_color_viridis_d()
+```
+
+### Exercise 3. 
+*We’ve discussed in this class the importance of showing uncertainty, when possible, using our visualizations. However, if you attempt to show uncertainty using geom_ribbon() on the plot you created, you end up with a mess. How could you modify the plot so that uncertainty is shown?*
+
+```{r}
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg))) +
+  facet_wrap(~gender) +
+  geom_ribbon(data = aug_int, aes(y = .fitted, ymin = .lower, ymax = .upper, fill = as.factor(bty_avg)), alpha = 0.3) +
+  scale_color_viridis_d()+
+  scale_fill_viridis_d()
+```
+
+### Exercise 4. 
+*Adjust one of the values for n to modify the plot in the previous exercise.*
+
+```{r}
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 16),
+    bty_avg = seq_range(bty_avg, n = 16),
+    gender = c("female", "male")
+  ) 
+grid
+
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg)), linewidth=2) +
+  facet_wrap(~gender) +
+  scale_color_viridis_d()
+
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg))) +
+  facet_wrap(~gender) +
+  geom_ribbon(data = aug_int, aes(y = .fitted, ymin = .lower, ymax = .upper, fill = as.factor(bty_avg)), alpha = 0.3) +
+  scale_color_viridis_d()+
+  scale_fill_viridis_d()
+```
+
+### Exercise 5. 
+*Look at the help in ?seq_range and use it to adjust the trim option for age.*
+
+```{r}
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 16, trim = 0.01),
+    bty_avg = seq_range(bty_avg, n = 16),
+    gender = c("female", "male")
+  ) 
+grid
+
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg)), linewidth=2) +
+  facet_wrap(~gender) +
+  scale_color_viridis_d()
+
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg)), linewidth = 1.5) +
+  facet_wrap(~gender) +
+  geom_ribbon(data = aug_int, aes(y = .fitted, ymin = .lower, ymax = .upper, fill = as.factor(bty_avg)), alpha = 0.3) +
+  scale_color_viridis_d() +
+  scale_fill_viridis_d()
+```
+
+*In all, we would prefer the plot without the confidence bands/ geom_ribbon()'s as it would allow for a cleaner vizual*
+
+### Final Plot
+
+```{r}
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(bty_avg)), linewidth=2) +
+  facet_wrap(~gender) +
+  scale_color_viridis_d() +
+  labs(title = "Score by Age and Beauty", x = "Age", y = " Predicted Score", colour = "Beauty Average")
+```
+
+
+## Section 9.3
+
+### Exercise 1. 
+*Fit a model of your choice with two categorical predictors, one quantitative predictor, and an interaction between the quantitative predictor and one of the categorical predictors. Construct a plot that helps interpret the coefficients from the fitted model. You do not need to show confidence bands on your plot. You should make a sketch of the plot you intend to create first!*
+
+```{r}
+# with an interaction
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 6),
+    ethnicity = evals %>% pull(ethnicity) %>% levels(),
+    gender = c("female", "male")
+  ) 
+mod <- lm(score ~  ethnicity + age + gender + age:gender,
+          data = evals)
+mod %>% tidy()
+aug_int <- augment(mod, newdata = grid,
+                   interval = "confidence")
+aug_int
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(model)), linewidth=2) +
+  facet_grid(ethnicity~gender) +
+  scale_color_viridis_d() +
+  labs(title = "Score by Age and Ethnicity", x = "Age", y = " Predicted Score", colour = "Gender")
+```
+
+
+### Exercise 2. 
+*Modify the model from the previous exercise by getting rid of the interaction term. Using the workflow we have been using, construct a plot that compares the model with the interaction and the model without the interaction. Again, it might be helpful to sketch the plot first.*
+
+```{r}
+# without an interaction
+grid <- evals |>
+  data_grid(
+    age = seq_range(age, n = 6),
+    ethnicity = evals %>% pull(ethnicity) %>% levels(),
+    gender = c("female", "male")
+  ) 
+mod <- lm(score ~  ethnicity + age + gender,
+          data = evals)
+mod %>% tidy()
+aug_int <- augment(mod, newdata = grid,
+                   interval = "confidence")
+aug_int
+ggplot(data = evals, aes(x = age, y = score)) +
+  geom_point() +
+  geom_line(data = aug_int, aes(x = age, y = .fitted, color = as.factor(gender)), linewidth=2) +
+  facet_grid(~ethnicity) +
+  scale_color_viridis_d() +
+  labs(title = "Score by Age and Ethnicity", x = "Age", y = " Predicted Score", colour = "Gender") 
+```
+
+
+
+
+
+
+
+
