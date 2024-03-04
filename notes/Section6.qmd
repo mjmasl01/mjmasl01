@@ -1,0 +1,331 @@
+---
+title: "Section 6"
+format: html
+---
+
+
+# Section 6.1
+
+```{r}
+## install.packages("maps")
+library(maps)
+library(tidyverse)
+state_df <- ggplot2::map_data("state")
+```
+
+```{r}
+# install.packages("usdata")
+library(usdata)
+reactable::reactable(state_stats, searchable = TRUE, filterable = TRUE
+                      ,paginateSubRows = TRUE, defaultPageSize = 10)
+```
+
+
+```{r}
+ggplot(data = state_df,
+            mapping = aes(x = long, y = lat,
+                          group = group)) +
+  geom_polygon() 
+ggplot(data = state_df,
+            mapping = aes(x = long, y = lat,
+                          group = group)) +
+  geom_polygon(colour = "black", fill = "white") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+state_stats <- state_stats |> mutate(state = str_to_lower(state))
+state_full <- left_join(state_df, state_stats, by = c("region" = "state"))
+
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_b()
+```
+
+
+
+```{css, echo = FALSE}
+.justify {
+  text-align: justify !important
+}
+```
+
+## Exercise 1. 
+*The reading gave one example where the “best” graph to show woud not be a map. Think of a second example where, even though the data is spatial, the best graph to make a particular argument would not be a map.*
+
+::: {.justify}
+
+The example the reading gives is about the smaller east coast states where it is significantly more difficult to visualize their coal levels as their shape on the graph is very minuscule, making it difficult to see and compare their values to rest of the states. Another graphic example that could better depict all of the state's coal levels could be a histogram, where there is a bar/hist for each state that shows their level, next to one another for a better graphic comparison.
+
+:::
+
+
+## Exercise 2. 
+*Refer back the United States examples that we completed. Choose a variable or two variables where a map makes the most sense to visualize that variable and explain your reasoning. Then, choose a variable or two variables where you might make a plot other than a map and explain your reasoning for why the map makes less sense for this variable.*
+
+::: {.justify}
+
+*Population Density:*   Variable where a map makes sense, since the color variation will allow for a clear visual of the population density across the states.
+
+
+*Median Income:* Variables where a map may not be the best choice to visualize the data, as the income levels are not spatially distributed across the states as this data is only on median values and will be difficult to compare the values across states with colors
+
+:::
+
+## Exercise 3. 
+*Which states had the fastest growth rate between 2000 and 2010? Make a variable for the percent change in population and then map this variable.*
+
+```{r}
+state_stats_growth <- state_full %>%
+  mutate(pop_growth_rate = ((pop2010 - pop2000) / pop2000) * 100)
+
+ggplot(data = state_stats_growth, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = pop_growth_rate)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_c()
+```
+
+
+::: {.justify}
+
+Nevada, Arizona, and Utah had the fastest growth rates between 2000 and 2010. These states are colored with yellow and lighetest shade of greenww on the map, indicating the highest growth rates. The map effectively shows the spatial distribution of growth rates across the United States, with the fastest growth rates in the Southwest and Mountain West regions.
+
+:::
+
+
+## Exercise 4. 
+*To your map in Exercise 1, think about which type of colour scale makes the most sense to use (sequential, diverging, or unordered). Change the colour scale to match what makes the most sense.*
+ 
+::: {.justify}
+ 
+ I would pick a sequential color scale for this graphic as the coal variable depicts a count in each region/state, therefore, having the sequential color scale will have white as the lowest value and dark red as the highest value, making it easier to see the differences in the coal levels across the states.
+ 
+:::
+
+```{r}
+# sequential
+red_palette <- colorRampPalette(c("white", "darkred"))
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  scale_fill_gradientn(colours = red_palette(10), name = "Coal Value") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+
+# diverging
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void() +
+  scale_fill_viridis_c()
+diverging_palette <- colorRampPalette(c("red", "white", "orange"))
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = coal)) +
+  scale_fill_gradientn(colours = diverging_palette(10), name = "Coal Value") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+
+# unordered
+unique_coal_values <- unique(state_full$coal)
+unordered_palette <- scales::hue_pal()(length(unique_coal_values))
+ggplot(data = state_full, aes(x = long, y = lat, group = group)) +
+  geom_polygon(colour = "black", aes(fill = factor(coal))) +
+  scale_fill_manual(values = unordered_palette, name = "Coal Value") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_void()
+
+```
+
+
+
+# Sectin 6.2
+
+```{r}
+active <- read_csv("https://raw.githubusercontent.com/iramler/stlawu_covid/main/slc_towns_active_cases.csv", n_max = 34)
+tcases <- read_csv("https://raw.githubusercontent.com/iramler/stlawu_covid/main/slc_towns_total_cases.csv", n_max = 34)
+
+active_long <- active |> pivot_longer(5:ncol(active), names_to = "date",
+                                       values_to = "cases")
+## repeat for total cases
+tcases_long <- tcases |> pivot_longer(5:ncol(tcases), names_to = "date",
+                                       values_to = "cases")
+
+library(lubridate)
+covid_df <- left_join(tcases_long, active_long,
+                      by = c("date", "Order", "NAME")) |>
+  mutate(date = mdy(date)) |>
+  rename(total_cases = cases.x,
+         active_cases = cases.y) |>
+  mutate(total_cases = if_else(is.na(total_cases),
+                               true = 0, false = total_cases),
+         active_cases = if_else(is.na(active_cases),
+                                      true = 0, false = active_cases))
+  
+
+covid_SLC <- covid_df |> filter(NAME == "St. Lawrence County")
+covid_sub <- covid_df |> filter(NAME != "St. Lawrence County")
+```
+
+We now have two data frames, covid_SLC, which contains cases for St. Lawrence County as a whole, and covid_sub, which has some information on Covid cases in the various sub-regions of SLC. Important variables include:
+
+NAME, the name of the county sub-area,
+Population.x, the county population,
+date, the date
+total_cases, the total number of cases
+active_cases, the number of active cases
+There is plenty we can do with this data set without mapping.
+
+## Exercise 1. 
+Make a line plot that shows the number of active_cases in all of St. Lawrence County over time.
+
+```{r}
+ggplot(data = covid_SLC, aes(x = date, y = active_cases)) +
+  geom_line() +
+  labs(title = "Active Cases in St. Lawrence County",
+       x = "Date",
+       y = "Active Cases") +
+  theme_minimal()
+```
+
+
+But suppose that we now want to make a map of the current day’s active cases in the subregions of SLC. We need to tell R how to draw the lines that define the different subregions of SLC. To do so, we need to provide R with a shapefile that has directions on how to draw the spatial polygons.
+
+How can we obtain this shapefile? There are two primary methods:
+
+Through GIS. You can export a shapefile for a particular region using GIS software, something I am not that familiar with. But, Carol Cady at SLU has GIS expertise.
+
+Searching the Internet. For example, a lot of the civic boundaries data for the state of New York can be found at https://gis.ny.gov/civil-boundaries. There are other sources that provide county-level, state-level, and nation-level shapefiles, most of which are freely available to download, as they are government-owned.
+
+
+```{r}
+## install.packages("sf")
+library(sf)
+shp <- read_sf("data/SLC_Civil_Boundaries_SHP/slc.shp") |>
+  st_transform(st_crs("+proj=longlat"))
+```
+
+```{r}
+ggplot(data = shp) +
+  geom_sf() +
+  theme_void()
+```
+
+```{r}
+full_df <- left_join(shp, covid_sub, by = "NAME") |>
+  filter(date == max(date)) ## only plot cases on the most recent date
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void()
+```
+
+## Exercise 2. 
+Change the fill scale of the plot. Should you use an unordered, sequential, or diverging scale?
+
+```{r}
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void() +
+  scale_fill_viridis_c()
+```
+
+
+## Exercise 3. 
+Change the colour scale so that active_cases are put into different bins with scale_fill_viridis_b(). What are some advantages and disadvantages of this?
+
+```{r}
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void() +
+  scale_fill_viridis_b()
+```
+
+
+## Exercise 4. 
+Explore the ?geom_sf_text() function and add the actual number of cases to the subregions in the plot, as was done on the SLC website.
+
+```{r}
+ggplot(data = full_df) +
+  geom_sf(aes(fill = active_cases)) +
+  theme_void() +
+  scale_fill_viridis_c() +
+  geom_sf_text(aes(label = active_cases), size = 3)
+```
+
+
+# Section 6.3
+
+```{r}
+library(tidyverse)
+library(here)
+hpi_df <- read_csv(here("data/hpi-tidy.csv"))
+```
+
+## Exericse 1. 
+Make a map of a variable of your choosing. In coord_map(), use projection = "mercator", which is also the default (we will see in a later exercise that this probably is not the best choice).
+
+Hint: in ggplot2’s map_data() function, there is a built in map of the "world".
+
+Hint: You can read more about projections in Section 17.3.2 of Modern Data Science with R
+
+```{r}
+world <- map_data("world")
+ggplot(data = world, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  coord_map(projection = "mercator")
+```
+
+
+## Exercise 2. 
+You may notice that the United States does not get coloured in your map. Examine this issue further and fix the map so that the United States is coloured.
+
+```{r}
+world <- map_data("world")
+ggplot(data = world, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  coord_map(projection = "mercator") +
+  geom_polygon(data = filter(world, region == "USA"), fill = "lightblue", color = "black")
+```
+
+
+## Exercise 3. 
+You may have noticed that there are two horizontal stripes across your map. This is an issue that drove me nuts! Check out this submitted issue on ggplot2’s GitHub page for the reason for the error as well as a fix. Use it to fix your plot.
+
+```{r}
+world <- map_data("world")
+ggplot(data = world, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  coord_map(projection = "mercator",xlim = c(-180,180)) + # due to longitude values outside the range [-180,180]
+  geom_polygon(data = filter(world, region == "USA"), fill = "lightblue", color = "black",) +
+  theme_void()
+```
+
+
+## Exercise 4. 
+Read about Mercator projections in this blog post. What does this source say about the sizes of Greenland vs. Africa in a Mercator projection?
+
+Africa and greenland are getting squished to be able to fit into the output.
+
+
+## Exercise 5. 
+Examine all of the different options for map projection with ?mapproject. Then, change the projection to "globular". Change the projection again to "gilbert". How does the relative size of Greenland to Africa change in the projections?
+
+```{r}
+world <- map_data("world")
+ggplot(data = world, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  coord_map(projection = "globular",xlim = c(-180,180)) + # due to longitude values outside the range [-180,180]
+  geom_polygon(data = filter(world, region == "USA"), fill = "lightblue", color = "black",) +
+  theme_void()
+ggplot(data = world, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  coord_map(projection = "gilbert",xlim = c(-180,180)) + # due to longitude values outside the range [-180,180]
+  geom_polygon(data = filter(world, region == "USA"), fill = "lightblue", color = "black",) +
+  theme_void()
+```
+
+
+
+
+
+
+

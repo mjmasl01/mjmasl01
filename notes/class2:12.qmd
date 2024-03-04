@@ -1,0 +1,102 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(broom)
+
+statsurvey_df <- read_csv(here("data/stat113_survey.csv"))
+
+statsurvey_nomiss <- statsurvey_df |> filter(!is.na(GPA))
+statsurvey_nomiss <- statsurvey_nomiss |>
+  mutate(time_year = as.numeric(time_year)) |>
+  mutate(a_year = if_else(time_semester == "S",
+                          true = time_year - 1,
+                          false = time_year)) |>
+  filter(GPA <= 4.0) |>
+  mutate(a_year_fact = as.factor(a_year),
+         a_year = a_year + 2000)
+```
+
+
+```{r}
+year_linear <- lm(GPA ~ a_year, data = statsurvey_nomiss)
+year_linear |>
+  tidy() |>
+  knitr::kable()
+```
+```{r}
+glance(lm(GPA ~ a_year, data = statsurvey_nomiss)) |>
+  knitr::kable()
+glance(year_linear) |>
+  knitr::kable()
+```
+
+```{r}
+# creatw grid
+(grid <- tibble(a_year = 2005:2021))
+aug_linear <- augment(year_linear, newdata = grid, interval = "confidence")
+aug_linear |>
+  knitr::kable()
+```
+
+
+
+```{r}
+aug_linear %>%
+  group_by(a_year) %>%
+  # now we make our plot using the geom_errorbar(), using the colors, red, white and scarlet
+  ggplot(aes(x = a_year, y = .fitted)) +
+  geom_errorbar(aes(ymin = .lower, ymax = .upper), width = 0.25, color = "red") +
+  geom_point() +
+  geom_line(color = "black") +
+  labs(title = "GPA over time",
+       x = "Academic year",
+       y = "GPA") + theme_minimal()
+  # now plot each indiduals student onto the plot
+  # geom_jitter(data = statsurvey_nomiss, aes(x = a_year, y = GPA), alpha = 0.5, width = 0.25)
+  ## points look okay but there so many that may be hard to see actual trend
+```
+
+
+```{r}
+year_linear <- lm(GPA ~ a_year, data = statsurvey_nomiss)
+year_aug <- year_linear |> augment()
+
+plot(year_linear)
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
