@@ -1,0 +1,70 @@
+---
+title: "Class Prep 12"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+# Section 12.1: Visualization Ethics
+
+## 12.1.1 General Principles
+
+
+
+### Exercise 1. 
+
+*Read Sections 8.1 through 8.3 of Modern Data Science with R, found here.*
+
+*Pick 1 of the 3 examples (stand your ground, climate change, or covid cases), and summarize why that graphic is not ethical. Make sure to include the context that the graph was created in from Section 8.3 in your explanation.*
+
+Looking at figure 8.1 it clear that whoever made the example was trying to trick the common viewer, as they flipped the numbers on the y-axis so it is in lowest at top, which makes the trend of the graph seem good, as the number of murders appear to be going down with the trendl, however, in reality the number of murders is increasing. This is a clear example of unethical data visualization, as it is trying to trick the viewer into thinking something that is not true.
+
+
+### Exercise 2. 
+
+*Read the short Section 8.5 of Modern Data Science with R, found here, stopping at Section 8.5.1.*
+
+*Choose 2 of the 12 principles of ethical practice of data science and come up a (possibly hypothetical) scenario where each of your two chosen principles would come into play.*
+
+`#.6` -  Be open to changing our methods and conclusions in response to new knowledge.
+
+A data scientist is working on a project to determine the best way to increase the number of people who are vaccinated. They have been working on the project for a few months and have come to the conclusion that the best way to increase the number of people who are vaccinated is to provide incentives to people who get vaccinated. However, new data comes out that shows that the best way to increase the number of people who are vaccinated is to provide information to people about the benefits of getting it. The data scientist should be open to changing their methods and conclusions in response to this new knowledge.
+
+
+`#.12` - Help others to understand the most useful and appropriate applications of data to solve real-world problems.
+
+A data scientist is working on a project to determine the useful and appropriate applications of data to solve real-world problems. They have been working on a project to reduce people's likelihood to getting sick. They have decided to provide the viewers with several graphs/vizuals that show the benefits of getting vaccinated. They should help others to understand the most useful and appropriate applications of data to solve real-world problems by providing the viewers with the most accurate and useful information to help them make the best decision. These graphics are also easily readable and understandable by the common viewer.
+ 
+
+
+## 12.1.2 Sensitive Data Visualizations
+
+
+
+
+### Exercise 3.
+*Which of the two visualizations better humanizes the victims of lynching? Why?*
+
+The point map (Example 2) better humanizes the victims of lynching. This is because it presents the data at a finer level of detail, emphasizing the individual incidents and their geographic specificity. Each point on the map represents a life lost to lynching, and viewers can visually grasp the dispersion and clustering of these tragic events. This granular representation highlights the human impact and individual stories behind each data point, fostering a deeper understanding of the personal tragedies that occurred during this period.
+
+### Exercise 4. 
+*Suppose that you want to humanize the victims more in a static, non-interactive graph. Brainstorm ways that you could achieve this.*
+
+One way to humanize the victims more in a static, non-interactive graph is to include a photograph of each victim next to their data point. This would allow viewers to see the faces of the individuals who were killed, making the data more personal and emotionally impactful. Another approach would be to include a brief description of each victim's life and the circumstances of their death, providing context and depth to the data. This could be done through a series of small text boxes or pop-ups that appear when the viewer hovers over each data point. Additionally, including quotes or testimonials from family members or community members could help to further humanize the victims and convey the emotional impact of these tragic events.
+
+### Exercise 5. 
+*A deeper discussion of these sites appears in this paper. Read the Introduction section on TayTweets and write 3 major takeaways from this section.*
+
+1. The authors of the paper used the TayTweets dataset to explore the ways in which Twitter users interacted with a chatbot named Tay, which was designed to mimic the language and behavior
+
+2. The authors found that the TayTweets dataset provides a unique opportunity to study the dynamics of human interaction with AI chatbots, as well as the ways in which these interactions can be influenced by social and cultural factors.
+
+3. The authors also discuss the ethical implications of using the TayTweets dataset, particularly in relation to issues of privacy, consent, and the potential for harm to individuals who were involved in the interactions with Tay. They emphasize the importance of considering these ethical concerns when working with sensitive data and highlight the need for responsible and transparent data practices in the field of data science.
+
+### Exercise 6. 
+*The authors of the book Data Feminism argue that “leveraging emotion” might help us better communicate with data. Read the first four paragraphs of Chapter 3 of the Data Feminism book. One example the authors use pertains to deaths from gun violence in the United States. Examine this animated chart. Explain how the chart uses emotion to convey the losses due to gun violence better than, for example, a statement that 11,356 people were killed from gun violence in 2018.*
+
+The animated chart uses emotion to convey the losses due to gun violence by visualizing the data in a way that emphasizes the human impact of these deaths. The chart shows a series of circles that represent the number of people killed by gun violence in the United States in 2018, with each circle representing 10 deaths. As the chart progresses, the circles accumulate and grow in size, creating a powerful visual representation of the scale of these losses. This dynamic and interactive visualization allows viewers to see the cumulative impact of gun violence over time, conveying the staggering number of lives lost in a way that is emotionally resonant and impactful. By leveraging emotion and visual storytelling, the chart communicates the human toll of gun.
+
+
