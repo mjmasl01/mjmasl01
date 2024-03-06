@@ -68,3 +68,88 @@ One way to humanize the victims more in a static, non-interactive graph is to in
 The animated chart uses emotion to convey the losses due to gun violence by visualizing the data in a way that emphasizes the human impact of these deaths. The chart shows a series of circles that represent the number of people killed by gun violence in the United States in 2018, with each circle representing 10 deaths. As the chart progresses, the circles accumulate and grow in size, creating a powerful visual representation of the scale of these losses. This dynamic and interactive visualization allows viewers to see the cumulative impact of gun violence over time, conveying the staggering number of lives lost in a way that is emotionally resonant and impactful. By leveraging emotion and visual storytelling, the chart communicates the human toll of gun.
 
 
+
+# 12.2 Challenger Case Study
+
+## Exercise 1. 
+*Read in the Challenger.csv data file, which contains the variables Temperature (the temperature of the launch in Farenheit) and SuccessfulLaunch (a 1 if the launch had no O-ring damage and a 0 if the launch was did have some O-ring damage). Note that, even with some O-ring damage, a launch would not necessarily fail. Each row corresponds to a test launch of the shuttle.*
+
+
+```{r}
+library(tidyverse)
+library(here)
+theme_set(theme_minimal())
+challenger_df <- read_csv(here("data/Challenger.csv"))
+```
+
+
+## Exercise 2. 
+*Fit a logistic regression model with SuccessfulLaunch as the response variable and Temperature as the predictor. Interpret the resulting coefficient for Temperature in terms of either the log-odds of a successful launch or in terms of the odds of a successful launch.*
+
+```{r}
+challenger_model <- glm(SuccessfulLaunch ~ Temperature, data = challenger_df, family = "binomial")
+summary(challenger_model)
+exp(coef(challenger_model))
+```
+
+In the conext of the problem, the coefficient of temperature means that for every one increase in degrees Fahrenheit, the odds of a success increases by 1.26
+
+## Exercise 3. 
+*Construct a visualization of the fitted regression model on the probability scale (so not on the odds or log-odds scale).*
+
+```{r}
+challenger_df %>%
+  ggplot(aes(x = Temperature, y = SuccessfulLaunch)) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) +
+  geom_rug(data = challenger_df |> filter(SuccessfulLaunch == 1), sides = "t") +
+  geom_rug(data = challenger_df |> filter(SuccessfulLaunch == 0), sides = "b") +
+  labs(title = "Probability of a Successful Launch by Temperature",
+       x = "Temperature (Farenheit)",
+       y = "Probability of a Successful Launch")
+```
+
+
+
+## Exercise 4. 
+*To your plot, add a vertical line at 31 degrees Farenheit, which was the temperature at the time of the actual launch.*
+
+```{r}
+challenger_df %>%
+  ggplot(aes(x = Temperature, y = SuccessfulLaunch)) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) +
+  labs(title = "Probability of a Successful Launch by Temperature",
+       x = "Temperature (Farenheit)",
+       y = "Probability of a Successful Launch") +
+  geom_rug(data = challenger_df |> filter(SuccessfulLaunch == 1), sides = "t") +
+  geom_rug(data = challenger_df |> filter(SuccessfulLaunch == 0), sides = "b") +
+  geom_vline(xintercept = 31, color = "red")
+```
+
+
+
+## Exercise 5. 
+*Write a memo urging NASA to consider postponing the flight. Consider what would be more helpful in your memo: the regression coefficient interpretation or the visualization.*
+
+As we can see in the plot O-rings are less likely to damage at higher temperatures. Additionaly, there were no test flights done at or near 31 degrees Fahrenheit, so it would be inadvisable to launch the shuttle at this temperature without further testing.
+
+This was an ethical violation of principles 8 and 9, and 1. Removing the data points led to a poorly informed decision, and more careful consideration of the consequences of somethinf going wrong could have prevented the tragedy.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
