@@ -1,0 +1,151 @@
+---
+title: "Class Prep 13"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+# 13.1 Leaflet (Class Prep)
+
+```{r}
+# install.packages("devtools")
+library(devtools)
+devtools::install_github("li-wen-li/uszipcodes")
+library(uszipcodes)
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+theme_set(theme_minimal())
+
+beers <- read_csv(here("data/breweries.csv"))
+```
+
+```{r}
+raw_zip <- uszipcodes::get_zip(beers$address)
+beers$Zip <- as.integer(uszipcodes::clean_zip(raw_zip))
+```
+
+
+```{r}
+zip_tab <- zip_table |> dplyr::select(Zip, Latitude, Longitude)
+beer_location <- inner_join(beers, zip_tab)
+beer_location
+```
+
+```{r}
+content <- beer_location |>
+  mutate(popup = paste0('<a href =', beer_location$website, '>',
+                        beer_location$brewery_name, '</a>'))
+```
+
+```{r}
+library(leaflet)
+
+beer_map <- leaflet(beer_location) |>
+  setView(lng = -98.583, lat = 39.833, zoom = 4) |>
+  addTiles() |>
+  addProviderTiles(providers$Esri.WorldGrayCanvas) |>
+  addMarkers(lng = beer_location$Longitude, lat = beer_location$Latitude,
+             clusterOptions = markerClusterOptions(),
+             popup = content$popup)
+```
+
+```{r}
+beer_map
+```
+
+
+## Exercise 1. 
+*Why is inner_join() the most appropriate join function to use here in this example? What observations will an inner_join() get rid of from beers? from zip_tab?*
+
+Inner Join is the most appropiare for this job because it wil keep the rows that the two data sets have in common based off the ID. The inner join is in charge of joining the two tables together based on the Zip column as the ID. This will get rid of any observations from the zip_table table that is not in the beers table. 
+
+
+## Exercise 2a. 
+*Run leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) and explain what the setView() function does.*
+
+```{r}
+leaflet(beer_location)  |> setView(lng = -98.583, lat = 39.833, zoom = 4)
+```
+
+The setView() function is used to set the initial view of the map. The lng and lat arguments are used to set the center of the map, and the zoom argument is used to set the initial zoom level of the map.
+
+
+## Exercise 2b. 
+*Run leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() and explain what the addTiles() function does.*
+
+```{r}
+leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles()
+```
+
+The addTiles() function is used to add a base layer to the map. The base layer is the background of the map, and it is what the other layers are drawn on top of. The addTiles() function is used to add a base layer to the map, and the default base layer is a set of tiles from OpenStreetMap.
+
+
+## Exercise 2c. 
+*Run leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() |> addProviderTiles(providers$Esri.WorldGrayCanvas) and explain what the addProviderTiles() function does. You may also want to check out the help ?addProviderTiles.*
+
+```{r}
+leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() |> addProviderTiles(providers$Esri.WorldGrayCanvas)
+```
+
+The addProviderTiles() function is used to add a base layer to the map, and it is used to add a base layer from a different provider than the default provider. The providers argument is used to specify the provider of the base layer, and the providers$Esri.WorldGrayCanvas argument is used to specify the Esri World Gray Canvas base layer from the Esri provider. The addProviderTiles() function is used to add a base layer from a different provider than the default provider, and the providers argument is used to specify the provider of the base layer.
+
+
+## Exercise 2d. 
+*Run leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() |> addProviderTiles(providers$Esri.WorldGrayCanvas) |> addMarkers(lng = beer_location$Longitude, lat = beer_location$Latitude) and explain what the addMarkers() function does.*
+
+```{r}
+leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() |> addProviderTiles(providers$Esri.WorldGrayCanvas) |> addMarkers(lng = beer_location$Longitude, lat = beer_location$Latitude)
+```
+
+The addMarkers() function is used to add markers to the map, and the lng and lat arguments are used to specify the longitude and latitude of the markers.
+
+
+## Exercise 2e. 
+*Run the code in Exercise 2d, but add clusterOptions = markerClusterOptions() as an argument to addMarkers(). Explain what adding this argument does to the map.*
+
+```{r}
+leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() |> addProviderTiles(providers$Esri.WorldGrayCanvas) |> addMarkers(lng = beer_location$Longitude, lat = beer_location$Latitude, clusterOptions = markerClusterOptions())
+```
+
+
+
+
+## Exercise 2f. 
+*Finally, run the code in Exercise 2e but add popup = content$popup as an argument to addMarkers(). Explain what adding this argument does to the map.*
+
+```{r}
+leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addTiles() |> addProviderTiles(providers$Esri.WorldGrayCanvas) |> addMarkers(lng = beer_location$Longitude, lat = beer_location$Latitude, clusterOptions = markerClusterOptions(), popup = content$popup)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
