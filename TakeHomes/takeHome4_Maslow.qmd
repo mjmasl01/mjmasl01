@@ -1,0 +1,92 @@
+---
+title: "TakeHome 4"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+
+```{r}
+library(tidyverse)
+library(broom)
+heart_df <- read_csv(here::here("data/heart.csv")) |>
+  mutate(target = case_when(target == 1 ~ 0,
+                            target == 0 ~ 1)) ## flip coding of response
+heart_df
+```
+
+# Question 1 (1 point). 
+*Fit a model with target as the response and age, sex, and chol as the predictors. Tidy the model; then, interpret the fitted regression coefficient for age in context of the problem.*
+
+```{r}
+mod1 <- glm(target ~ age + sex + chol, data = heart_df)
+mod1 %>% tidy()
+```
+
+In the context of the problem, the fitted regression coefficient for age is 0.013. This means that for every one year increase in age of the patient, the log-odds of having a heart disease increases by 0.013, given all other predictors are constant.
+
+
+
+# Question 2 (1 point). 
+*Fit a model with target as the response and age, sex, chol, the interaction between age and sex, the interaction between age and chol, and the interaction between sex and chol as predictors. Glance at the model from Question 1 and the model from this question. Which is the better model, according to the BIC criterion?*
+
+```{r}
+mod2 <- glm(target ~ age + sex + chol + age:sex + age:chol + sex:chol, data = heart_df)
+mod1 %>% glance()
+mod2 %>% glance()
+```
+
+According to the BIC criterion, the model from Question 1 proves to be the better model, as it has a lower BIC value (`mod1:` 415.8, `mod2:` 429.3).
+
+
+# Question 3 (1 point). 
+*Sketch a visualization that helps interpret the fitted model from Question 1, using “predicted probability” of heart disease as the y-axis in your visualization. You do not need to turn anything in for this question, but it is suggested that you practice sketching for the handwritten quiz.*
+
+
+On paper
+
+
+
+# Question 4 (5 points). 
+*Using the strategy outlined in class, construct a visualization that helps interpret the fitted model from Question 1, using “predicted probability” of heart disease as the y-axis in your visualization.*
+
+```{r}
+heart_df %>%
+  mutate(target = ifelse(target == 1, "Heart Disease", "No Heart Disease"),
+         sex = ifelse(sex == 1, "Male", "Female")) %>%
+  ggplot(aes(x = age, y = chol, color = sex)) +
+    geom_boxplot() +
+    facet_wrap(~target) +
+    labs(title = "Predicted Probability of Heart Disease by Age and Cholesterol",
+         x = "Age",
+         y = "Cholesterol",
+         color = "Gender",
+         shape = "Target") +
+    theme_minimal()
+```
+
+
+# Question 5 (1 point). 
+*We constructed the previous models and the previous plot with limited information about who the people are that make up the observations in this data set. Thinking more about the context of this data and about a “population” that these patients might represent, what else would you want to know about the people in this data set?*
+
+I would want to know more about the lifestyle of the patients in this data set. For example, I would want to know if they smoke, how much they exercise, and what their diet is like. I would also want to know if they have any family history of heart disease, and if they have any other health conditions.
+
+
+
+# Question 6 (1 point). 
+*Suppose that we have a different data set on heart disease, with a quantitative measurement of “blockage” as the response variable. We give a particular treatment to a subset of patients in the study and measure the “blockage” before treatment and gain 6 weeks after treatment. Why is making a set of side-by-side boxplots with “pre vs. post” treatment on the x-axis and “blockage” on the y-axis not the best visual for this hypothetical data set?*
+
+A set of side-by-side box plots would not be the best visual for this hypothetical data set because the data is paired. That is, the pre-treatment and post-treatment measurements are from the same patients. A better visual would be a set of side-by-side box plots with the difference in blockage before and after treatment on the y-axis, and the treatment group on the x-axis. This would allow us to see if the treatment had an effect on the blockage of the patients. Furthermore, could also, plot geom_lines one for each classification in order ot compare them on same plot, although plot the differences would show similar effect and is also a bit cleaner.
+
+
+
+
+
+
+
+
+
+
+
