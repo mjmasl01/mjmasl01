@@ -23,9 +23,10 @@ heart_df
 ```{r}
 mod1 <- glm(target ~ age + sex + chol, data = heart_df)
 mod1 %>% tidy()
+mod1 %>% coef() %>% exp()
 ```
 
-In the context of the problem, the fitted regression coefficient for age is 0.013. This means that for every one year increase in age of the patient, the log-odds of having a heart disease increases by 0.013, given all other predictors are constant.
+In the context of the problem, the fitted regression coefficient for age is 0.013. This means that for every one year increase in age of the patient, the log-odds of having a heart disease increases by 0.013, given all other predictors are constant. Or this could also be read as for every one year increase in the age of the patient, the odds
 
 
 
@@ -44,27 +45,37 @@ According to the BIC criterion, the model from Question 1 proves to be the bette
 # Question 3 (1 point). 
 *Sketch a visualization that helps interpret the fitted model from Question 1, using “predicted probability” of heart disease as the y-axis in your visualization. You do not need to turn anything in for this question, but it is suggested that you practice sketching for the handwritten quiz.*
 
-
 On paper
-
 
 
 # Question 4 (5 points). 
 *Using the strategy outlined in class, construct a visualization that helps interpret the fitted model from Question 1, using “predicted probability” of heart disease as the y-axis in your visualization.*
 
 ```{r}
-heart_df %>%
-  mutate(target = ifelse(target == 1, "Heart Disease", "No Heart Disease"),
-         sex = ifelse(sex == 1, "Male", "Female")) %>%
-  ggplot(aes(x = age, y = chol, color = sex)) +
-    geom_boxplot() +
-    facet_wrap(~target) +
-    labs(title = "Predicted Probability of Heart Disease by Age and Cholesterol",
-         x = "Age",
-         y = "Cholesterol",
-         color = "Gender",
-         shape = "Target") +
-    theme_minimal()
+# getting the data ready fo question 5
+library(modelr)
+grid <-heart_df %>% data_grid(
+  sex = c(1, 0),
+  age = seq_range(heart_df$age, n = 5),
+  chol = seq_range(heart_df$chol, n = 5)
+)
+aug_heart <- augment(mod1, newdata = grid, se_fit = TRUE, interval = "prediction")
+aug_heart
+```
+```{r}
+aug_heart %>%
+  ggplot(aes(x = age, y = .fitted)) +
+  geom_line(aes(color = as.factor(chol)), size=1.5) +
+  geom_rug(data = heart_df, sides = "t", alpha = 0.3,
+           aes(y = target)) +
+  geom_rug(data = heart_df, sides = "b", alpha = 0.3,
+           aes(y = target)) +
+  facet_wrap(~sex) +
+  theme_minimal() +
+  labs(title = "Predicted Probability of Heart Disease by Age, Cholesterol, and Sex",
+       x = "Age",
+       y = "Predicted Probability of Heart Disease",
+       color = "Cholesterol Level")
 ```
 
 
@@ -72,7 +83,6 @@ heart_df %>%
 *We constructed the previous models and the previous plot with limited information about who the people are that make up the observations in this data set. Thinking more about the context of this data and about a “population” that these patients might represent, what else would you want to know about the people in this data set?*
 
 I would want to know more about the lifestyle of the patients in this data set. For example, I would want to know if they smoke, how much they exercise, and what their diet is like. I would also want to know if they have any family history of heart disease, and if they have any other health conditions.
-
 
 
 # Question 6 (1 point). 

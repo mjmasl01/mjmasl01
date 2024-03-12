@@ -56,7 +56,7 @@ lego_df %>%
 legoMOD <- 
   lego_df %>%
   mutate(age_5 = factor(age_5),
-         theme = factor(theme)) %>%
+         theme = fazctor(theme)) %>%
   lm(price ~ age_5 + pieces + theme + pieces:theme, .)
 glance(legoMOD)
 ```
