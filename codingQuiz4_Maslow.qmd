@@ -1,0 +1,104 @@
+---
+title: "Coding Quiz 4"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+```
+
+# Question 1
+
+```{r}
+library(tidyverse)
+library(rvest)
+url <- "https://en.wikipedia.org/wiki/List_of_Wimbledon_gentlemen%27s_singles_champions"
+tennis_tables <- read_html(url) |>
+  html_nodes("table")
+wimbledon_df <- tennis_tables[[4]] |> html_table() |>
+  select(-Country) |>
+  rename(year = `Year[d]`,
+         runner_up = `Runner-up`,
+         champion = Champion) |>
+  filter(year >= 2004) |>
+  mutate(player1 = if_else(champion > runner_up,
+                           true = runner_up,
+                           false = champion),
+         player2 = if_else(champion > runner_up,
+                           true = champion,
+                           false = runner_up)) |>
+  select(-champion, -runner_up) |>
+  filter(player1 != "No competition (due to COVID-19 pandemic)[6]")
+
+wimbledon_df
+```
+
+```{r}
+# nodes
+library(tidygraph)
+nodes <- wimbledon_df |> pivot_longer(c(player1, player2),
+                             names_to = "player_num",
+                             values_to = "player") |>
+  distinct(player) |>
+  rowid_to_column("id") |>
+  rename(label = player)
+
+# big three
+nodes <- nodes |>
+  mutate(big_3 = label %in% c("Roger Federer", "Rafael Nadal", "Novak Djokovic"))
+```
+
+
+```{r}
+wimbledon_df <- wimbledon_df %>%
+  rename(vertex1 = player1, vertex2 = player2)
+```
+
+
+```{r}
+wimbledon_sum <- wimbledon_df |> mutate(player1 = if_else(vertex1 > vertex2,
+                                           true = vertex2,
+                                           false = vertex1),
+                     player2 = if_else(vertex1 > vertex2,
+                                            true = vertex1,
+                                            false = vertex2)) |>
+  dplyr::select(-vertex1, -vertex2) |>
+  group_by(player1, player2) |>
+  summarise(n_matches = n())
+wimbledon_sum
+```
+
+```{r}
+# edges
+edges <- left_join(wimbledon_sum, nodes, by = join_by(player1 == label)) |>
+  rename(from = "id") |>
+  left_join(nodes, by = join_by(player2 == label)) |>
+  rename(to = "id") |>
+  ungroup() |>
+  dplyr::select(to, from, n_matches)
+edges
+```
+
+```{r}
+(network_obj <- tbl_graph(nodes = nodes, edges = edges, directed = FALSE))
+```
+
+```{r}
+library(ggraph)
+
+ggraph(network_obj |> mutate(centrality = centrality_authority()),
+                            layout = "stress") +
+  geom_edge_link(aes(width = n_matches), alpha = 0.7, show.legend = FALSE) +
+  geom_node_point(aes(colour = big_3,
+                      size = centrality)) +
+  scale_edge_width(range = c(0.5, 3)) +
+  geom_node_text(aes(label = label), repel = TRUE)  +
+  scale_colour_viridis_d() +
+  labs(size = "Based on # of Matches",
+       color = "Big 3")
+```
+
+
