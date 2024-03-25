@@ -155,6 +155,20 @@ ggplotly(plot_test) |>
 
 
 
+```{r}
+mtcars
+subset_by_cyl <- function(cyl_val) {
+  mtcars %>% filter(cyl == cyl_val)
+}
+
+subset_by_cyl(cyl_val = 8)
+
+subset_by_cyl(cyl_val = "8")
+```
+
+
+
+
 
 
 
