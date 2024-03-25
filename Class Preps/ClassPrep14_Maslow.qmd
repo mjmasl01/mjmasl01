@@ -1,0 +1,222 @@
+---
+title: "Class Prep 14"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+
+# Section 14.1
+
+## Exercise 1. 
+
+*Many students and faculty at St. Lawrence have used Shiny for some really cool projects! Some of these are stored at https://stlawu.shinyapps.io/index/. Choose an app from either the tab for SYE projects or the tab for Summer Research projects and answer the following questions.*
+
+### a.
+
+*What makes the app interactive? In other words, what is a user allowed to change in the app?*
+
+What makes an app interactive is when, the user is able to physically adjust or change the data that is being displayed, such as adjusting variables, and type of graph.
+
+### b.
+
+*What are the outputs of the app? In other words, what in the app updates when you change some of the things you described in part (a).*
+
+The outputs of the app are the graphs and data that are displayed. When the user changes the variables, the graphs and data will update to reflect the changes made.
+
+### c.
+
+*Write a short one paragraph description describing the app you selected, what makes it interactive, and something interesting that you found while exploring the app.*
+
+Looking at the NYC bike rental shiny app, the user is able to adjusts filters for gender and type of measurement. The app also allows you to adjust the time range by date, and the visual is showing a map, which circles as the data points. The interesting thing I found with this app was that, I almost think it could benefit from some interactive points on the map, as many of the points are extremely clustered.
+
+
+## Exercise 2. Choose another app from the SYE or the summer research tab at https://stlawu.shinyapps.io/index/. Answer the following questions.
+
+### a.
+
+*What makes the app interactive? In other words, what is a user allowed to change in the app?*
+
+Chose the MCSS course enrollment app, and it has several windows, where itg displays different options and visuals that allow the user to adjust the data. The user can adjust the year, the semester, the course, and the type of data that is being displayed. The user can also adjust the type of graph that is being displayed, and the data that is being displayed.
+
+
+### b.
+
+*What are the outputs of the app? In other words, what in the app updates when you change some of the things you described in part (a).*
+
+The outputs of the app are the graphs and data that are displayed. When the user changes the variables, the graphs and data will update to reflect the changes made.
+
+
+Next, to introduce yourself to some basic Shiny code syntax, read Chapter 1 of the Mastering Shiny textbook by Wickham: https://mastering-shiny.org/basic-app.html. Make sure that you can run the code in this section as you are reading along.
+
+
+
+## Exercise 3. 
+
+*At the end of the section, complete the following exercises in 1.8 Exercises: Exercise 2, Exercise 3, and Exercise 4 (for this exercise, you should actually make the reactive expression that helps reduce the code duplication).*
+
+
+```{r}
+library(shiny)
+ui <- fluidPage(
+  "Hello, world!"
+)
+server <- function(input, output, session) {
+  output$summary <- renderPrint({
+    dataset <- get(input$dataset, "package:datasets")
+    summary(dataset)
+  })
+  
+  output$table <- renderTable({
+    dataset <- get(input$dataset, "package:datasets")
+    dataset
+  })
+}
+shinyApp(ui, server)
+```
+
+```{r}
+server <- function(input, output, session) {
+  # Create a reactive expression
+  dataset <- reactive({
+    get(input$dataset, "package:datasets")
+  })
+
+  output$summary <- renderPrint({
+    # Use a reactive expression by calling it like a function
+    summary(dataset())
+  })
+  
+  output$table <- renderTable({
+    dataset()
+  })
+}
+```
+
+
+
+### 1.
+
+Create an app that greets the user by name. You don’t know all the functions you need to do this yet, so I’ve included some lines of code below. Think about which lines you’ll use and then copy and paste them into the right place in a Shiny app.
+
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  textInput("name", "What's your name?"),
+  textOutput("greeting"),
+  numericInput("age", "How old are you?", value = NA),
+  tableOutput("mortgage"),
+  plotOutput("histogram")
+)
+
+server <- function(input, output, session) {
+  output$greeting <- renderText({
+    paste0("Hello ", input$name)
+  })
+  
+  output$histogram <- renderPlot({
+    hist(rnorm(1000))
+  }, res = 96)
+}
+
+shinyApp(ui, server)
+```
+
+
+### 2.
+
+*Suppose your friend wants to design an app that allows the user to set a number (x) between 1 and 50, and displays the result of multiplying this number by 5. This is their first attempt:*
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  sliderInput("x", label = "If x is", min = 1, max = 50, value = 30),
+  "then x times 5 is",
+  textOutput("product")
+)
+
+server <- function(input, output, session) {
+  output$product <- renderText({ 
+    input$x * 5
+  })
+}
+
+shinyApp(ui, server)
+```
+
+
+
+### 3.
+
+*Extend the app from the previous exercise to allow the user to set the value of the multiplier, y, so that the app yields the value of x times y. The final result should look like this:.*
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  sliderInput("x", label = "If x is", min = 1, max = 50, value = 30),
+  sliderInput("y", label = "and y is", min = 1, max = 50, value = 5),
+  "then x times y is",
+  textOutput("product")
+)
+
+server <- function(input, output, session) {
+  output$product <- renderText({ 
+    input$x * input$y
+  })
+}
+
+shinyApp(ui, server)
+
+```
+
+
+### 4.
+
+*Take the following app which adds some additional functionality to the last app described in the last exercise. What’s new? How could you reduce the amount of duplicated code in the app by using a reactive expression.*
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  sliderInput("x", "If x is", min = 1, max = 50, value = 30),
+  sliderInput("y", "and y is", min = 1, max = 50, value = 5),
+  "then, (x * y) is", textOutput("product"),
+  "and, (x * y) + 5 is", textOutput("product_plus5"),
+  "and (x * y) + 10 is", textOutput("product_plus10")
+)
+
+server <- function(input, output, session) {
+  product <- reactive({
+    input$x * input$y
+  })
+  
+  output$product <- renderText({ 
+    product()
+  })
+  
+  output$product_plus5 <- renderText({ 
+    product() + 5
+  })
+  
+  output$product_plus10 <- renderText({ 
+    product() + 10
+  })
+}
+
+shinyApp(ui, server)
+```
+
+
+
+
+
+
+
+
+
+
