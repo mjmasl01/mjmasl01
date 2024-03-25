@@ -150,22 +150,6 @@ ggplotly(plot_test) |>
 ```
 
 
-### Exercise 4. 
-
-*Use the ggplotly() function on any plot of your choice that we’ve made so far in the course or any plot that you’ve made for your blog. For this exercise, really try to think about a plot that would benefit from becoming interactive.*
-
-```{r}
-
-```
-
-
-
-
-# 13.3 Your Turn
-
-## Exercise 1. 
-
-*What are some advantages of making a plot more interactive? What are some disadvantages of making a plot more interactive?*
 
 
 
