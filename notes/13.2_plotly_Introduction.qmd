@@ -1,0 +1,188 @@
+---
+title: "13.2 plotly Introduction"
+author: "matt maslow"
+format: html
+---
+
+
+# 13.2 plotly Introduction
+
+## Notes
+
+
+```{r}
+## install.packages("plotly")
+library(plotly)
+library(tidyverse)
+```
+
+```{r}
+hpi_df <- read_csv(here::here("data/hpi-tidy.csv"))
+ggplot(data = hpi_df, aes(x = Footprint, y = Wellbeing)) +
+  geom_point() +
+  theme_minimal()
+```
+
+If we were interested in labeling 1 particular country, then we can do so with geom_text() or geom_text_repel(). But, if we want the user to be able to hover over any point in the scatterplot to see the name of the country, we can use plotly.
+
+First, we assign out plot a name so that we can reference it with a plotly function. In this example, we name our plot plot1.
+
+
+
+```{r}
+plot1 <- ggplot(data = hpi_df, aes(x = Footprint, y = Wellbeing)) +
+  geom_point() +
+  theme_minimal()
+
+ggplotly(plot1)
+```
+
+
+```{r}
+plot2 <- ggplot(data = hpi_df, aes(x = Footprint, y = Wellbeing,
+                                   label = Country,
+                                   label2 = Region)) +
+  geom_point() +
+  theme_minimal()
+
+# tooltip just needs to match what you have up in aes
+ggplotly(plot2, tooltip = c("x", "y", "label", "label2"))
+```
+
+
+## Exercises
+
+### Exercise 1
+
+*Using the penguins data set from the palmerpenguins package, create a simple bar plot of species. Then, use ggplotly on the bar plot.*
+
+```{r}
+library(palmerpenguins)
+```
+
+```{r}
+plotP1 <- 
+  penguins %>%
+    ggplot(aes(x = species)) +
+    geom_bar(colour = "blue", fill = "lightblue")
+
+ggplotly(plotP1, tooltip = c("x"))
+```
+
+
+### Exercise 2
+
+*Use the ggplotly() function on the lollipop plot we made that showed the proportion of male (or female) students in particular majors. Then, modify the plot so that, when someone hovers over the point, the sample size is displayed.*
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+df <- read_excel(here::here("data/slu_graduates_17_23.xlsx"))
+
+## fixes error in the data
+df <- df |> mutate(across(everything(),
+                          .fns = ~replace(., . ==  "STATS" , "STAT")))
+```
+```{r}
+majors_plot <- 
+  df %>% 
+  select(-starts_with("minor")) %>%
+  pivot_longer(starts_with("major"), names_to = "major_num",
+               values_to = "major") %>%
+  filter(!is.na(major)) %>%
+  group_by(sex, major) %>%
+  summarise(n_majors = n()) %>%
+  ungroup() %>%
+  pivot_wider(names_from = sex, values_from = n_majors) %>%
+  mutate(prop_male = M / (`F` + M),
+         total_students = `F` + M) %>%
+  filter(total_students >= 70) %>%
+  mutate(major = fct_reorder(major, prop_male))
+```
+
+```{r}
+mcss_df <- majors_plot %>% filter(major %in% c("STAT", "MATH", "CS"))
+
+plotLolly <-
+  majors_plot %>%
+    ggplot(aes(x = major, y = prop_male, label = total_students)) +
+    geom_point() +
+    geom_segment(aes(x = major, xend = major, y = 0, yend = prop_male)) +
+    geom_segment(data = mcss_df, aes(x=major,  xend = major, y = 0, yend = prop_male), color = "green") +
+    geom_point(data = mcss_df, color = "hotpink") +
+    coord_flip() +
+    theme_classic() +
+    theme(axis.text.x = element_text(size = 13)
+    ) +
+    labs(caption = "Data source: SLU Instiutional Research Office")
+```
+
+#### Answer
+
+```{r}
+ggplotly(plotLolly, tooltip = c("x", "y", "total_students"))
+```
+
+
+
+### Exercise 3
+
+*You can also remove hover info for particular items with the style() function. In particular, specifying hoverinfo == "none" for particular traces removes the hover info for those traces. Modify one of the following examples so that hover info is only displayed for the points (and not for the smoother or the standard error bar for the smoother).*
+
+
+```{r}
+plot_test <- ggplot(hpi_df, aes(x = Footprint, y = Wellbeing)) +
+  geom_point() +
+  geom_smooth()
+
+
+ggplotly(plot_test) |>
+  style(hoverinfo = "none", traces = c(1, 2, 3)) ## remove hover info for all three traces
+```
+
+#### Modification
+
+```{r}
+ggplotly(plot_test) |>
+  style(hoverinfo = "none", traces = c(3)) ## remove hover info for se line
+```
+
+
+### Exercise 4. 
+
+*Use the ggplotly() function on any plot of your choice that we’ve made so far in the course or any plot that you’ve made for your blog. For this exercise, really try to think about a plot that would benefit from becoming interactive.*
+
+```{r}
+
+```
+
+
+
+
+# 13.3 Your Turn
+
+## Exercise 1. 
+
+*What are some advantages of making a plot more interactive? What are some disadvantages of making a plot more interactive?*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

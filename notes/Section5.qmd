@@ -44,7 +44,6 @@ majors_plot %>%
   theme(axis.text.x = element_text(size = 13)
   ) +
   labs(caption = "Data source: SLU Instiutional Research Office")
-
 ```
 
 

@@ -147,5 +147,3 @@ leaflet(beer_location) |> setView(lng = -98.583, lat = 39.833, zoom = 4) |> addT
 
 
 
-
-
