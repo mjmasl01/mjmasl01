@@ -1,0 +1,180 @@
+---
+title: "Class Prep 15"
+author: "Matt Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+library(shiny)
+library(plotly)
+```
+
+
+## Exercise 1. 3.3.6 Exercise 1 in Mastering Shiny.
+
+```{r}
+ui <- fluidPage(
+  textInput("name", "What's your name?"),
+  textOutput("greeting")
+)
+```
+
+```{r}
+server1 <- function(input, output, server) {
+  input$greeting <- renderText(paste0("Hello ", name))
+}
+
+server2 <- function(input, output, server) {
+  greeting <- paste0("Hello ", input$name)
+  output$greeting <- renderText(greeting)
+}
+
+server3 <- function(input, output, server) {
+  output$greting <- paste0("Hello", input$name)
+}
+```
+
+### Corrected Code
+
+```{r}
+ui <- fluidPage(
+  textInput("name", "What's your name?"),
+  textOutput("greeting")
+)
+
+server1 <- function(input, output, session) {
+  output$greeting <- renderText(paste0("Hello ", input$name))
+}
+
+server2 <- function(input, output, session) {
+  output$greeting <- renderText({
+    greeting <- paste0("Hello ", input$name)
+    greeting
+  })
+}
+server3 <- function(input, output, session) {
+  output$greeting <- renderText(paste0("Hello ", input$name))
+}
+
+shinyApp(ui, server3)
+```
+
+
+## Exercise 2. 3.3.6 Exercise 2 in Mastering Shiny. 
+
+*You do not need to submit your sketches but you should bring them to class.*
+
+### Server 1
+
+```{r}
+ui <- fluidPage(
+  # UI for server1
+  numericInput("a", "Enter value for a:", value = 0),
+  numericInput("b", "Enter value for b:", value = 0),
+  numericInput("d", "Enter value for d:", value = 0),
+  plotOutput("plot")
+)
+
+server1 <- function(input, output, session) {
+  output$plot <- renderPlot({
+    data <- data.frame(
+      value = c(input$a, input$b, input$d),
+      variable = rep(c("a", "b", "d"), each = 1)
+    )
+    ggplot(data, aes(x = variable, y = value, fill = variable)) +
+      geom_col() +
+      labs(title = "Grouped Histogram of Inputs", fill = "Variable")
+  })
+}
+
+shinyApp(ui, server1)
+```
+
+
+### Server 2
+
+```{r}
+ui <- fluidPage(
+  # UI for server2
+  numericInput("x1", "Enter value for x1:", value = 0),
+  numericInput("x2", "Enter value for x2:", value = 0),
+  numericInput("x3", "Enter value for x3:", value = 0),
+  numericInput("y1", "Enter value for y1:", value = 0),
+  numericInput("y2", "Enter value for y2:", value = 0),
+  plotOutput("plot"),
+  textOutput("z") # Added this line to define the output$z
+)
+
+server2 <- function(input, output, session) {
+  x <- reactive(input$x1 + input$x2 + input$x3)
+  y <- reactive(input$y1 + input$y2)
+  output$z <- renderText({
+    z <- x() / y()
+    paste("x / y =", z)
+  })
+  
+  output$plot <- renderPlot({
+    data <- data.frame(
+      value = c(x(), y(), x() / y()),
+      variable = rep(c("x", "y", "z"), each = 1)
+    )
+    ggplot(data, aes(x = variable, y = value, fill = variable)) +
+      geom_bar(stat = "identity") + # Changed geom_col() to geom_bar(stat = "identity")
+      labs(title = "Grouped Bar Chart of Inputs", fill = "Variable") # Changed title to "Grouped Bar Chart"
+  })
+}
+
+shinyApp(ui, server2)
+
+```
+
+
+### Server 3
+
+```{r}
+ui <- fluidPage(
+  # UI for server3
+  numericInput("a", "Enter value for a:", value = 0),
+  numericInput("b", "Enter value for b:", value = 0),
+  numericInput("c", "Enter value for c:", value = 0),
+  numericInput("d", "Enter value for d:", value = 0),
+  plotOutput("plot")
+)
+
+server3 <- function(input, output, session) {
+  d <- reactive({
+    input$c ^ input$d
+  })
+  
+  a <- reactive({
+    input$a * 10
+  })
+  
+  c_reactive <- reactive({
+    input$b / input$c
+  })
+  
+  b <- reactive({
+    a() + input$b
+  })
+  
+  output$plot <- renderPlot({
+    data <- data.frame(
+      value = c(a(), b(), c_reactive(), d()),
+      variable = rep(c("a", "b", "c", "d"), each = 1)
+    )
+    ggplot(data, aes(x = variable, y = value, fill = variable)) +
+      geom_col() +
+      labs(title = "Grouped Histogram of Inputs", fill = "Variable")
+  })
+}
+
+shinyApp(ui, server3)
+```
+
+
+
+
