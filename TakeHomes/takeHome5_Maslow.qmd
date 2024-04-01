@@ -1,0 +1,148 @@
+---
+title: "TakeHome 5"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+atp_rankings <- read_csv("https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master/atp_rankings_20s.csv")
+atp_rankings_10s <- read_csv("https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master/atp_rankings_10s.csv")
+atp_players <- read_csv("https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master/atp_players.csv")
+
+df10s <- left_join(atp_rankings_10s, atp_players,
+                   join_by(player == player_id))
+df20s <- left_join(atp_rankings, atp_players,
+                   join_by(player == player_id))
+
+atp_top50_ever <- bind_rows(df10s, df20s) |>
+  filter(rank <= 50)
+
+atp_rank <- bind_rows(df10s, df20s) |>
+  semi_join(atp_top50_ever, join_by(player == player)) |>
+  unite(name, c("name_first", "name_last"), sep = " ") |>
+  mutate(ranking_date = lubridate::ymd(ranking_date)) |>
+  complete(name, ranking_date, fill = list(points = 0)) |> 
+  arrange(ranking_date, desc(points))
+## what do you think complete() is doing here? 
+
+atp_rank
+```
+
+
+```{r}
+atp_one <- atp_rank |> filter(name == "Roger Federer")
+atp_time <- atp_one |> filter(lubridate::year(ranking_date) >= 2010)
+
+plotFederer <- 
+  ggplot(data = atp_time, aes(x = ranking_date, y = points, label = rank)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Ranking Points for Roger Federer") +
+  lims(y = c(0, NA))
+
+plotFederer
+```
+
+
+# Question 1 (2 points). 
+
+*Outside of Shiny, use plotly to add functionality so that, when a user hover’s over Federer’s ranking points plot, his rank at that point in time is shown (and only his rank is shown when hovering).*
+
+
+
+```{r}
+library(plotly)
+custom_tooltip_text <- atp_time$rank
+plotFederer %>%
+  ggplotly(tooltip = c("label")) %>%
+  layout(hovermode = "x unified", # makes it so line is fixed along the line
+         hoverlabel = list(bgcolor = "lightgreen"),
+         hoverinfo = "text",
+          text = custom_tooltip_text)
+```
+
+
+
+# Question 2 (8 points). 
+
+*Create a shiny app with this data that satisfies the following:*
+
+  the user should be able to change the player whose ranking points are shown.
+
+  the user should be able to adjust the dates of the plot by specifying a start year (so that, for example, they might choose to make the plot start at the year 2015).
+
+  the user should be able to change the y-axis so that the y-axis is either points or rank (remember what we discussed about tidy evaluation!). In practice, the points variable     is the better one to plot.
+
+  the title of the plot should update to show the player that the user has selected.
+
+**Note 1:** Because the user will select points or rank, you can get rid of the plotly functionality that you completed for exercise 1.
+
+**Note 2:** It might be helpful practice for the handwritten portion of the assessment to draw a reactive graph of your shiny app after you finish writing it. You do not,                  however, need to turn in your reactive graph sketch.
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  titlePanel("ATP Rankings"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("player", "Player", choices = unique(atp_rank$name)),
+      sliderInput("year", "Year", min = 2010, max = 2020, 
+            value = c(2010, 2020),
+            step = 1,
+            sep = "",
+            timeFormat = "%Y"),
+      selectInput("y_axis", "Y-axis", choices = c("points", "rank"))),
+    
+    mainPanel(
+      plotlyOutput("plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  filtered_data <- reactive({
+    atp_one <- atp_rank %>%
+      filter(name == input$player) %>%
+      filter(lubridate::year(ranking_date) >= input$year[1])
+    atp_one
+  })
+  
+  output$plot <- renderPlotly({
+    p <- ggplot(data = filtered_data(), aes(x = ranking_date, y = .data[[input$y_axis]])) +
+      geom_line() +
+      theme_minimal() +
+      labs(title = paste("Ranking Points for", input$player)) +
+      ylim(0, NA)
+    
+    ggplotly(p, tooltip = c("x", "y")) %>% 
+      layout(hovermode = "x unified", # makes it so line is fixed along the line
+         hoverlabel = list(bgcolor = "lightgreen"))
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
