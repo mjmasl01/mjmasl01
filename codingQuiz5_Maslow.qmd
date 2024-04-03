@@ -1,0 +1,124 @@
+---
+title: "Coding Quiz 5"
+author: "Matthew Maslow"
+format: 
+  html:
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+penguins
+```
+
+
+# Question 1
+
+```{r}
+plot1 <-
+  ggplot(data = penguins, aes(x = bill_depth_mm, y = bill_length_mm,
+                              label = sex)) + # added label in her to let R know Im gonna use it below
+    geom_point(aes(colour = species)) +
+    scale_colour_viridis_d(option = "B") +
+    theme_minimal()
+```
+
+```{r}
+library(plotly)
+# now plug in plot object and set tooltip to sex
+ggplotly(plot1, tooltip = "sex")
+```
+
+
+# Question 2
+
+```{r}
+penguins |> pull(species) |> unique()
+
+penguins_one_sp_island <- penguins |> 
+  filter(island == "Biscoe") |>
+  filter(species == "Adelie") |>
+  filter(!is.na(sex))
+
+ggplot(data = penguins_one_sp_island, aes(x = sex, y = bill_depth_mm)) +
+  geom_jitter(width = 0.25) +
+  labs(title = "Adelie Penguins on Biscoe") +
+  theme_minimal()
+```
+
+```{r}
+penguins_one_sp_island |> group_by(sex) |>
+  summarise(mean = mean(bill_depth_mm, na.rm = TRUE),
+            sd = sd(bill_depth_mm, na.rm = TRUE)) 
+```
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  titlePanel("Penguins"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "island",
+                  label = "Island",
+                  choices = c("Biscoe", "Dream", "Torgersen"),
+                  selected = "Biscoe"),
+      selectInput(inputId = "species",
+                  label = "Species",
+                  choices = c("Adelie", "Chinstrap", "Gentoo"),
+                  selected = "Adelie"),
+      sliderInput(inputId = "jitter",
+                  label = "Jitter Width",
+                  min = 0,
+                  max = 0.25,
+                  value = 0.125)
+    ),
+    mainPanel(
+      plotOutput(outputId = "strip_plot"),
+      tableOutput(outputId = "summary_table")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  observe({
+    penguins_filtered <- penguins %>%
+      filter(island == input$island) %>%
+      filter(!is.na(species))
+    
+    updateSelectInput(session, "species", choices = unique(penguins_filtered$species))
+  })
+  
+  output$strip_plot <- renderPlot({
+    penguins_one_sp_island <- penguins %>% 
+      filter(island == input$island) %>%
+      filter(species == input$species) %>%
+      filter(!is.na(sex))
+
+    ggplot(data = penguins_one_sp_island, aes(x = sex, y = bill_depth_mm)) +
+      geom_jitter(width = input$jitter) +
+      labs(title = paste(input$species,"Penguins on", input$island)) +
+      theme_minimal()
+  })
+  
+  output$summary_table <- renderTable({
+    penguins_one_sp_island <- penguins %>% 
+      filter(island == input$island) %>%
+      filter(species == input$species) %>%
+      filter(!is.na(sex))
+    
+    penguins_one_sp_island %>%
+      group_by(sex) %>%
+      summarise(mean = mean(bill_depth_mm, na.rm = TRUE),
+                sd = sd(bill_depth_mm, na.rm = TRUE))
+  })
+
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+
+
+
