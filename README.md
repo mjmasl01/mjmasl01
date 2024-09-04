@@ -1,6 +1,6 @@
 ### Hi there 👋
 
-I am a current senior at St. Lawrence University, in Canton, NY, and pursuing a degree in Data Science.
+I am a currently attending Boston University, in Boston, MA, and pursuing a Masters in Data Science.
 
 How to reach me.... cell: 617-433-0501
                     email: mjmasl20@stlawu.edu, mjmaslow13@gmail.com, mjmaslow@bu.edu
