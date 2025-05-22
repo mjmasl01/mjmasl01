@@ -5,5 +5,5 @@ My work spans health analytics, finance, sports, and public survey data. Notable
 Whether it involves regression modeling, cloud infrastructure, or storytelling through dashboards, I enjoy using data to solve real-world problems with clarity and impact.
 
 How to reach me....
-                    email: mjmasl20@stlawu.edu, mjmaslow13@gmail.com, mjmaslow@bu.edu
+                    email: mjmaslow13@gmail.com, mjmaslow@bu.edu
                     
